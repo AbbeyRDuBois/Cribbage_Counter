@@ -43,7 +43,7 @@ class MyWindow(qtw.QMainWindow):
         if(card == "Done"):
             #Create cards and calculate
             button = qtw.QPushButton(f'{crib_calc.calculate()}', self)
-            button.clicked.connect(partial(self.onReturnClick, None))
+            button.clicked.connect(self.onReturnClick)
             self.setCentralWidget(button)
             
     def onReturnClick(self, x):
