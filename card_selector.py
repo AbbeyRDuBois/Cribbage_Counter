@@ -30,7 +30,7 @@ class Main_Window(qtw.QMainWindow):
         self.hand = []
         self.cards = 0
 
-        self.setWindowTitle('Cribbage Counter')
+        #Set widgets to be displayed (central widget necessary)
         centralWidget = qtw.QWidget()
         self.setCentralWidget(centralWidget)
         self.layout = qtw.QVBoxLayout(centralWidget)
@@ -90,6 +90,7 @@ class Main_Window(qtw.QMainWindow):
         button.clicked.connect(self.initUI)
         self.setCentralWidget(button)
 
+    #Add suits to combo box same way calculator takes them
     def make_suit_box(self):
         suit_box = qtw.QComboBox()
         suit_box.addItem("Heart")
@@ -98,6 +99,7 @@ class Main_Window(qtw.QMainWindow):
         suit_box.addItem("Club")
         return suit_box
     
+    #Add cards to combo box same way that calculator takes them
     def make_rank_box(self):
         rank_box = qtw.QComboBox()
         rank_box.addItem("A")
@@ -115,9 +117,11 @@ class Main_Window(qtw.QMainWindow):
         rank_box.addItem("K")
         return rank_box
 
+#Run window
 if __name__ == '__main__':
     app = qtw.QApplication(sys.argv)
     window = Main_Window()
+    window.setWindowTitle('Cribbage Counter')
     window.setGeometry(100,100,400,300)
     window.show()
     sys.exit(app.exec())
