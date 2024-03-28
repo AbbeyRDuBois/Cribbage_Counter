@@ -3,9 +3,10 @@ from functools import partial
 
 import crib_calc
 
+flipped = None
 hand = []
 
-def home_menu(window):
+def home_menu(window, func):
     window.rows = 5
     window.columns = 3
     
@@ -21,7 +22,7 @@ def home_menu(window):
     for row in range(window.rows):
         for column in range(window.columns): 
             button = qtw.QPushButton(f'{card_list[i]}', window)
-            button.clicked.connect(partial(window.onClicked, card_list[i]))
+            button.clicked.connect(partial(func, card_list[i]))
             window.layout.addWidget(button, row+1, column)
             i += 1
             if i == list_length: break
@@ -38,21 +39,39 @@ class MyWindow(qtw.QMainWindow):
     def __init__(self):
         super(MyWindow, self).__init__()
 
-        home_menu(self)
+        home_menu(self, self.onClicked)
 
     def onClicked(self, card):
+        global hand
         print(card)
-        
+
         if(card == "Done"):
+            #Navigate to get flipped card
+            home_menu(self, self.onFlippedClick)
+        else:
+            hand.append(crib_calc.Card(card, "heart"))
+
+    def onFlippedClick(self, card):
+        global flipped
+        global hand
+        print(card)
+
+        if((card == "Done") and (flipped != None)):
             #Create cards and calculate
-            button = qtw.QPushButton(f'{crib_calc.calculate(hand)}', self)
+            button = qtw.QPushButton(f'{crib_calc.calculate(hand, flipped)}', self)
             button.clicked.connect(self.onReturnClick)
             self.setCentralWidget(button)
         else:
-            hand.append(crib_calc.Card(card, "heart"))
-            
-    def onReturnClick(self, x):
-        home_menu(self)
+            flipped = crib_calc.Card(card, "heart")
+        
+    def onReturnClick(self):
+        global flipped
+        global hand
+
+        flipped = None
+        hand = []
+
+        home_menu(self, self.onClicked)
                 
 if __name__ == '__main__':
     app = qtw.QApplication([])

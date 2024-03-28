@@ -138,7 +138,7 @@ def find_flush(hand, flipped):
     return points
 
 #Calculate the score
-def calculate(hand, flipped=Card('2', 'club')):
+def calculate(hand, flipped):
     startTime = time.time()
     points = 0
 
