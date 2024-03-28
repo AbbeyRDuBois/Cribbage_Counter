@@ -86,7 +86,7 @@ class Main_Window(qtw.QMainWindow):
 
         #Hook up the Card array/flipped card to the calculator and display score
         button = qtw.QPushButton(f'{crib_calc.calculate(self.hand, self.flipped)} points', self)
-        button.clicked.connect(self.onReturnClick)
+        button.clicked.connect(self.initUI)
         self.setCentralWidget(button)
 
     def make_suit_box(self):
@@ -113,12 +113,6 @@ class Main_Window(qtw.QMainWindow):
         rank_box.addItem("Q")
         rank_box.addItem("K")
         return rank_box
-    
-    def onReturnClick(self):
-        self.flipped = None
-        self.hand = []
-
-        self.initUI()
 
 if __name__ == '__main__':
     app = qtw.QApplication(sys.argv)
