@@ -49,26 +49,42 @@ class Main_Window(qtw.QWidget):
     def add_new_card(self):
         new_suit = SuitBox()
         new_rank = RankBox()
-        #Need the + 1 Offset for the Add Card Button
-        self.main_layout.addWidget(new_suit, self.cards + 1, 0)
-        self.main_layout.addWidget(new_rank, self.cards + 1, 1)
+        self.card_layout.addRow(new_suit, new_rank)
         self.cards += 1
+
+    #Removes last card in the list
+    def delete_card(self):
+        if self.cards != 1:
+            self.card_layout.removeRow(self.cards - 1)
+            self.cards -= 1
 
     #Creates the Main Window
     def initUI(self):
-        #self.setWindowTitle('Cribbage Counter')
-        #Set Main window as a Grid Layout
-        self.main_layout = qtw.QGridLayout()
+        self.setWindowTitle('Cribbage Counter')
+        self.main_layout = qtw.QVBoxLayout()
         self.setLayout(self.main_layout)
 
         #Add the Add Card button to top of window
         add_card = qtw.QPushButton("Add Card")
         add_card.clicked.connect(self.add_new_card)
-        self.main_layout.addWidget(add_card, 0, 0, 1, 2)
+        self.main_layout.addWidget(add_card)
+
+        #Add the Remove Card button to top of window
+        remove_card = qtw.QPushButton("Remove Card")
+        remove_card.clicked.connect(self.delete_card)
+        self.main_layout.addWidget(remove_card)
+
+        #Set up the new card layout
+        self.card_layout = qtw.QFormLayout()
+        self.main_layout.addLayout(self.card_layout)
+
+        #Add the Done Button to Bottom of window (will always stay at bottom)
+        self.done = qtw.QPushButton("Done")
+        #add_card.clicked.connect(self.make_cards)
+        self.main_layout.addWidget(self.done)
 
         #Have 4 cards already in window
-        i = 0
-        while (i < 4):
+        for i in range(4):
             self.add_new_card()
             i += 1
 
