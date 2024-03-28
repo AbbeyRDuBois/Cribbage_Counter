@@ -1,8 +1,11 @@
+#Foreign imports
 import sys
 import PyQt6.QtWidgets as qtw
 
+#Local imports
 import crib_calc
 
+#Class that adapts QMainWindow to fit our needs
 class Main_Window(qtw.QMainWindow):
     #Initializes the class as a QMainWindow and calls initUI
     def __init__(self):
