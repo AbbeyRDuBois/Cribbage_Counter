@@ -3,14 +3,6 @@ import PyQt6.QtWidgets as qtw
 
 import crib_calc
 
-class PushButton(qtw.QPushButton):
-    def __init__(self, text, parent=None):
-        super(PushButton, self).__init__(text, parent)
-
-        self.setText(text)
-        self.setMinimumSize(qtw.QSize(50, 50))
-        self.setMaximumSize(qtw.QSize(50, 50))
-
 class Main_Window(qtw.QMainWindow):
     #Initializes the class as a QMainWindow and calls initUI
     def __init__(self):
@@ -93,7 +85,7 @@ class Main_Window(qtw.QMainWindow):
                 self.hand.append(crib_calc.Card(rank, suit))
 
         #Hook up the Card array/flipped card to the calculator and display score
-        button = qtw.QPushButton(f'{crib_calc.calculate(self.hand, self.flipped)}', self)
+        button = qtw.QPushButton(f'{crib_calc.calculate(self.hand, self.flipped)} points', self)
         button.clicked.connect(self.onReturnClick)
         self.setCentralWidget(button)
 
