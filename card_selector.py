@@ -45,7 +45,7 @@ class Main_Window(qtw.QMainWindow):
         remove_card.clicked.connect(self.delete_card)
         self.layout.addWidget(remove_card)
 
-        #flipped Card
+        #Flipped Card
         self.layout.addWidget(qtw.QLabel("Flipped Card"))
         self.flipped_layout = qtw.QGridLayout()
         self.layout.addLayout(self.flipped_layout)
@@ -67,6 +67,7 @@ class Main_Window(qtw.QMainWindow):
             self.add_new_card()
             i += 1
 
+    #Does calculation once "Done" is clicked
     def make_cards(self):
         suit = self.flipped_layout.itemAtPosition(0,0).widget()
         rank = self.flipped_layout.itemAtPosition(0,1).widget()
@@ -84,7 +85,7 @@ class Main_Window(qtw.QMainWindow):
                 rank = rank.currentText()
                 self.hand.append(crib_calc.Card(rank, suit))
 
-        #Hook up the Card array/flipped card to the calculator and display score
+        #Display score until clicked
         button = qtw.QPushButton(f'{crib_calc.calculate(self.hand, self.flipped)} points', self)
         button.clicked.connect(self.initUI)
         self.setCentralWidget(button)
