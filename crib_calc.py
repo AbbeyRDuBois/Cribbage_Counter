@@ -138,58 +138,9 @@ def find_flush(hand, flipped):
     return points
 
 #Calculate the score
-def calculate():
+def calculate(hand, flipped=Card('2', 'club')):
     startTime = time.time()
     points = 0
-    hand = []
-    cut_card = 0
-    flipped = 0
-
-    print("Enter cards one by one until hand is represented.")
-    print("Format for card as it is entered: value (A, K, Q, J, 2, 3 etc.) suit (diamonds, hearts, spades, clubs)")
-    print("Ex: K clubs or A spades")
-    print ("Enter 'done' when finished.")
-
-    card = Card("A", "hearts")
-    hand.append(card)
-    card = Card("2", "spades")
-    hand.append(card)
-    card = Card("3", "clubs")
-    hand.append(card)
-    card = Card("4", "hearts")
-    hand.append(card)
-
-    card = Card("5", "diamonds")
-    hand.append(card)
-    card = Card("10", "spades")
-    hand.append(card)
-    card = Card("J", "diamonds")
-    hand.append(card)
-    card = Card("Q", "hearts")
-    hand.append(card)
-
-    # card = Card("J", "hearts")
-    # hand.append(card)
-    # card = Card("Q", "spades")
-    # hand.append(card)
-    # card = Card("Q", "clubs")
-    # hand.append(card)
-    # card = Card("10", "hearts")
-    # hand.append(card)
-
-    flipped = Card("5", "hearts")
-    # while True:
-    #     card = input("Card: ")
-    #     if card == "done":
-    #         cut_card = input("Flipped Card: ")
-    #         value, suit = cut_card.split()
-    #         flipped = Card(value, suit)
-    #         points += nibs(flipped)
-    #         break
-    #     else:
-    #         value, suit = card.split()
-    #         card = Card(value, suit)
-    #         hand.append(card)
 
     #Organize the hand
     hand = sorted(hand, key=lambda x: x.value)
@@ -212,5 +163,3 @@ def calculate():
     endTime = time.time()
     print(f"CalculationTime: {endTime - startTime}s")
     return points
-
-calculate()

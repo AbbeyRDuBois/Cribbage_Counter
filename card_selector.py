@@ -3,6 +3,8 @@ from functools import partial
 
 import crib_calc
 
+hand = []
+
 def home_menu(window):
     window.rows = 5
     window.columns = 3
@@ -12,7 +14,7 @@ def home_menu(window):
 
     window.layout = qtw.QGridLayout(centralWidget)
     
-    card_list = ['Ace', 2, 3, 4, 5, 6, 7, 8, 9, 10, "Jack", "Queen", "King", "Done"]
+    card_list = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', "Done"]
     list_length = len(card_list)
 
     i = 0
@@ -40,11 +42,14 @@ class MyWindow(qtw.QMainWindow):
 
     def onClicked(self, card):
         print(card)
+        
         if(card == "Done"):
             #Create cards and calculate
-            button = qtw.QPushButton(f'{crib_calc.calculate()}', self)
+            button = qtw.QPushButton(f'{crib_calc.calculate(hand)}', self)
             button.clicked.connect(self.onReturnClick)
             self.setCentralWidget(button)
+        else:
+            hand.append(crib_calc.Card(card, "heart"))
             
     def onReturnClick(self, x):
         home_menu(self)
