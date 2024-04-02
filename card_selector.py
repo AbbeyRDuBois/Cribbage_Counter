@@ -56,9 +56,15 @@ class Main_Window(qtw.QMainWindow):
         self.flipped_layout.addWidget(self.make_rank_box(), 0, 1)
 
         #Set up the new card layout
+        #Set up the new card layout
         self.layout.addWidget(qtw.QLabel("Personal Hand"))
+        scroll = qtw.QScrollArea()
         self.card_layout = qtw.QGridLayout()
-        self.layout.addLayout(self.card_layout)
+        wrapper_widget = qtw.QWidget()
+        wrapper_widget.setLayout(self.card_layout)
+        scroll.setWidget(wrapper_widget)
+        scroll.setWidgetResizable(True)
+        self.layout.addWidget(scroll)
 
         #Add the Done Button to Bottom of window (will always stay at bottom)
         self.done = qtw.QPushButton("Done")
