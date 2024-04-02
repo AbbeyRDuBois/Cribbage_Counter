@@ -67,6 +67,7 @@ class Main_Window(qtw.QMainWindow):
         self.layout.addWidget(scroll)
 
         #Add the Done Button to Bottom of window (will always stay at bottom)
+        self.layout.addWidget(qtw.QLabel(""))
         self.done = qtw.QPushButton("Done")
         self.done.clicked.connect(self.make_cards)
         self.layout.addWidget(self.done)
@@ -131,6 +132,6 @@ if __name__ == '__main__':
     app = qtw.QApplication(sys.argv)
     window = Main_Window()
     window.setWindowTitle('Cribbage Counter')
-    window.setGeometry(100,100,400,300)
+    window.setGeometry(100,100,400,325)
     window.show()
     sys.exit(app.exec())
