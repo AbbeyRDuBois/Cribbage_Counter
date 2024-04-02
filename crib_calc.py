@@ -91,33 +91,55 @@ def find_pairs(hand, flipped):
 
 #Finding Runs
 def find_runs(hand, flipped):
+    #Initialize list of card values
     card_values = [get_card_points_runs(card.value) for card in hand]
     card_values.append(get_card_points_runs(flipped.value))
-
     card_values.sort(reverse=True)
     
-    points = 0
-    multiplier = 1
-    run_length = 1
+    #Set up variables
+    points = 0 #Return total point count
+    multiplier_count = 0 #Counts duplicates in runs for displaying
+    total_multiplier = 1 #Total run multiplier (duplicates)
+    multiplier = 1 #Local multiplier (duplicates)
+    run_length = 1 #Length of the current run
 
+    #Loop through each card
     for index in range(len(card_values)):
-        if(index+1 < len(card_values)):
-            if(card_values[index] == card_values[index+1]):
-                multiplier *= 2
-            elif(card_values[index]-1 == card_values[index+1]):
-                run_length += 1
+        if(index+1 < len(card_values)): #Ensure that overflow doesn't occur
+            if(card_values[index] == card_values[index+1]): #If duplicate, add to multiplier
+                multiplier += 1
             else:
-                if(run_length >= 3):
-                    points += run_length * multiplier
-                    print(f"{multiplier} run(s) of {run_length}{set([card_values[i] for i in range(index+1-run_length-(int(math.log(multiplier)/math.log(2))), index+1)])} for {run_length * multiplier}")
-                
-                multiplier = 1
-                run_length = 1
-        else:
+                if(card_values[index] != card_values[index+1] and multiplier > 1): #If duplicate needs resetting
+                    multiplier_count += 1
+                    total_multiplier *= multiplier
+                    multiplier = 1
+                if(card_values[index]-1 == card_values[index+1]): #If next card continues run (since duplicates are taken care of)
+                    run_length += 1
+                elif(run_length >= 3): #If valid run, add points, display, and reset variables
+                    total_multiplier *= multiplier
+                    points += run_length * total_multiplier
+                    print(f"{total_multiplier} run(s) of {run_length}{sorted(set([card_values[i] for i in range(index+1-run_length-multiplier_count, index+1)]))} for {run_length * total_multiplier}")
+
+                    multiplier_count = 0
+                    total_multiplier = 1
+                    multiplier = 1
+                    run_length = 1
+                else: #If invalid run, reset variables
+                    multiplier_count = 0
+                    total_multiplier = 1
+                    multiplier = 1
+                    run_length = 1
+        else: #If no more cards after this one, so wrap up with current variables
             if(run_length >= 3):
-                points += run_length * multiplier
-                print(f"{multiplier} run(s) of {run_length}{set([card_values[i] for i in range(index+1-run_length-(int(math.log(multiplier)/math.log(2))), index+1)])} for {run_length * multiplier}")
-            
+                if(multiplier > 1): #Adding extra multiplier_count can cause wrap-around
+                    multiplier_count += 1
+                    total_multiplier *= multiplier
+                points += run_length * total_multiplier
+                print(f"{total_multiplier} run(s) of {run_length}{sorted(set([card_values[i] for i in range(index+1-run_length-multiplier_count, index+1)]))} for {run_length * total_multiplier}")
+                
+            #Reset variables just to be safe
+            multiplier_count = 0
+            total_multiplier = 1
             multiplier = 1
             run_length = 1
 
