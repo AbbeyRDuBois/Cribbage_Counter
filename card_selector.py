@@ -10,7 +10,7 @@ class Main_Window(qtw.QMainWindow):
     #Initializes the class as a QMainWindow and calls initUI
     def __init__(self):
         super().__init__()
-        self.initUI()
+        self.initUI(4)
 
     #Creates new rank and suit boxes adds it to layout then increments how many cards you have
     def add_new_card(self):
@@ -28,7 +28,7 @@ class Main_Window(qtw.QMainWindow):
             self.cards -= 1
 
     #Creates the Main Window
-    def initUI(self):
+    def initUI(self, num_cards):
         self.flipped = None
         self.hand = []
         self.cards = 0
@@ -56,7 +56,6 @@ class Main_Window(qtw.QMainWindow):
         self.flipped_layout.addWidget(self.make_rank_box(), 0, 1)
 
         #Set up the new card layout
-        #Set up the new card layout
         self.layout.addWidget(qtw.QLabel("Personal Hand"))
         scroll = qtw.QScrollArea()
         self.card_layout = qtw.QGridLayout()
@@ -73,7 +72,7 @@ class Main_Window(qtw.QMainWindow):
         self.layout.addWidget(self.done)
 
         #Have 4 cards already in window
-        for i in range(4):
+        for i in range(num_cards):
             self.add_new_card()
             i += 1
 
@@ -97,7 +96,7 @@ class Main_Window(qtw.QMainWindow):
 
         #Display score until clicked
         button = qtw.QPushButton(f'{crib_calc.calculate(self.hand, self.flipped)} points', self)
-        button.clicked.connect(self.initUI)
+        button.clicked.connect(lambda: self.initUI(len(self.hand)))
         self.setCentralWidget(button)
 
     #Add suits to combo box same way calculator takes them
