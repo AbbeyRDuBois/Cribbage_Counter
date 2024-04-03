@@ -110,12 +110,13 @@ def find_runs(hand, flipped):
                 multiplier += 1
             else:
                 if(card_values[index] != card_values[index+1] and multiplier > 1): #If duplicate needs resetting
-                    multiplier_count += 1
+                    multiplier_count += multiplier-1
                     total_multiplier *= multiplier
                     multiplier = 1
                 if(card_values[index]-1 == card_values[index+1]): #If next card continues run (since duplicates are taken care of)
                     run_length += 1
                 elif(run_length >= 3): #If valid run, add points, display, and reset variables
+                    multiplier_count += multiplier-1
                     total_multiplier *= multiplier
                     points += run_length * total_multiplier
                     print(f"{total_multiplier} run(s) of {run_length}{sorted(set([card_values[i] for i in range(index+1-run_length-multiplier_count, index+1)]))} for {run_length * total_multiplier}")
@@ -131,9 +132,8 @@ def find_runs(hand, flipped):
                     run_length = 1
         else: #If no more cards after this one, so wrap up with current variables
             if(run_length >= 3):
-                if(multiplier > 1): #Adding extra multiplier_count can cause wrap-around
-                    multiplier_count += 1
-                    total_multiplier *= multiplier
+                multiplier_count += multiplier-1
+                total_multiplier *= multiplier
                 points += run_length * total_multiplier
                 print(f"{total_multiplier} run(s) of {run_length}{sorted(set([card_values[i] for i in range(index+1-run_length-multiplier_count, index+1)]))} for {run_length * total_multiplier}")
                 
