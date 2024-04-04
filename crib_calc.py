@@ -76,8 +76,6 @@ def find_pairs(hand, flipped, points):
     hand = copy.copy(hand)
     hand.append(flipped)
 
-    points = 0
-
     for card1, card2 in itertools.combinations(hand, 2):
         if card1.value == card2.value:
             points += 2
