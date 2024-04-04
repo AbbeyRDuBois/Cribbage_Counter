@@ -21,7 +21,7 @@ class Main_Window(qtw.QMainWindow):
         self.cards += 1
 
     #Removes last card in the list
-    def delete_card(self):
+    def remove_card(self):
         if self.cards != 1:
             rank = self.card_layout.itemAtPosition(self.cards-1,1).widget()
             self.card_layout.removeWidget(rank)
@@ -45,7 +45,7 @@ class Main_Window(qtw.QMainWindow):
 
         #Add the Remove Card button to top of window
         remove_card = qtw.QPushButton("Remove Card")
-        remove_card.clicked.connect(self.delete_card)
+        remove_card.clicked.connect(self.remove_card)
         self.layout.addWidget(remove_card)
 
         #Flipped Card
