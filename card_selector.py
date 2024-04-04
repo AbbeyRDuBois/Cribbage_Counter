@@ -14,11 +14,10 @@ class Main_Window(qtw.QMainWindow):
         self.initUI(4)
 
     #Creates new rank and suit boxes adds it to layout then increments how many cards you have
-    def add_new_card(self, include_suit=True):
-        if(include_suit):
-            self.card_layout.addWidget(self.make_suit_box(), self.cards, 0)
+    def add_new_card(self):
         self.card_layout.addWidget(self.make_rank_box(), self.cards, 1)
         self.cards += 1
+        self.layout.itemAt(4).widget().setText(f"Personal Hand ({self.cards})")
 
     #Removes last card in the list
     def remove_card(self):
@@ -26,6 +25,7 @@ class Main_Window(qtw.QMainWindow):
             rank = self.card_layout.itemAtPosition(self.cards-1,1).widget()
             self.card_layout.removeWidget(rank)
             self.cards -= 1
+            self.layout.itemAt(4).widget().setText(f"Personal Hand ({self.cards})")
 
     #Creates the Main Window
     def initUI(self, num_cards):
@@ -56,7 +56,7 @@ class Main_Window(qtw.QMainWindow):
         self.flipped_layout.addWidget(self.make_rank_box(), 0, 1)
 
         #Set up the new card layout
-        self.layout.addWidget(qtw.QLabel("Personal Hand"))
+        self.layout.addWidget(qtw.QLabel("Personal Hand (4)"))
         scroll = qtw.QScrollArea()
         self.card_layout = qtw.QGridLayout()
         wrapper_widget = qtw.QWidget()
@@ -86,7 +86,7 @@ class Main_Window(qtw.QMainWindow):
 
         #Have 4 cards already in window
         for i in range(num_cards):
-            self.add_new_card(False)
+            self.add_new_card()
             i += 1
 
     #Does calculation once "Done" is clicked
@@ -116,10 +116,26 @@ class Main_Window(qtw.QMainWindow):
 
                 self.hand.append(crib_calc.Card(rank, suit))
 
-        #Display score until clicked
-        button = qtw.QPushButton(f'{crib_calc.calculate(self.hand, self.flipped)} points', self)
+        #Get score to display until clicked
+        [points, output] = crib_calc.calculate(self.hand, self.flipped)
+
+        #Initiate layout
+        centralWidget = qtw.QWidget()
+        self.setCentralWidget(centralWidget)
+        self.layout = qtw.QVBoxLayout(centralWidget)
+
+        #Add the points button to return to the game
+        button = qtw.QPushButton(f'{points} points\n\n(Click here for next hand)', self)
         button.clicked.connect(lambda: self.initUI(len(self.hand)))
-        self.setCentralWidget(button)
+        self.layout.addWidget(button)
+
+        #Add the scroll box for the score output
+        scroll = qtw.QScrollArea()
+        #self.output_layout = qtw.QGridLayout()
+        output_widget = qtw.QLabel(f"{output}")
+        scroll.setWidget(output_widget)
+        scroll.setWidgetResizable(True)
+        self.layout.addWidget(scroll)
 
     #Add suits to combo box same way calculator takes them
     def make_suit_box(self):

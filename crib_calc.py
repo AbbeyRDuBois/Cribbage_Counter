@@ -44,18 +44,18 @@ def nibs(flipped):
     return points
 
 #Finding Nobs
-def nobs(hand, flipped, points):
+def nobs(hand, flipped, points, output_string):
     #For Nobs (suit of jack in hand matches the flipped suit)
     for card in hand:
         if card.suit == flipped.suit and card.value == "J":
-            print("Nobs for 1")
+            output_string += "Nobs for 1\n"
             points += 1
             break
 
-    return points
+    return [points, output_string]
 
 #Finding 15s
-def find_15s(hand, flipped, points):
+def find_15s(hand, flipped, points, output_string):
     hand = copy.copy(hand)
     hand.append(flipped)
 
@@ -66,25 +66,25 @@ def find_15s(hand, flipped, points):
 
             if subset_sum == 15:
                 points += 2
-                subset_expression = " + ".join(f"{card.value} {card.suit}" for card in subset)
-                print(f"{subset_expression} - 15 ({points})")
+                subset_expression = " + ".join(f"{card.value}" for card in subset)
+                output_string += f"{subset_expression} = 15 ({points})\n"
                 
-    return points
+    return [points, output_string]
 
 #Finding Pairs
-def find_pairs(hand, flipped, points):
+def find_pairs(hand, flipped, points, output_string):
     hand = copy.copy(hand)
     hand.append(flipped)
 
     for card1, card2 in itertools.combinations(hand, 2):
         if card1.value == card2.value:
             points += 2
-            print(f"Pair {card1.value} {card1.suit} / {card2.value} {card2.suit} ({points})")
+            output_string += f"Pair {card1.value} / {card2.value} ({points})\n"
             
-    return points
+    return [points, output_string]
 
 #Finding Runs
-def find_runs(hand, flipped, points):
+def find_runs(hand, flipped, points, output_string):
     #Initialize list of card values
     card_values = [get_card_points_runs(card.value) for card in hand]
     card_values.append(get_card_points_runs(flipped.value))
@@ -112,7 +112,7 @@ def find_runs(hand, flipped, points):
                     multiplier_count += multiplier-1
                     total_multiplier *= multiplier
                     points += run_length * total_multiplier
-                    print(f"{total_multiplier} run(s) of {run_length}{sorted(set([card_values[i] for i in range(index+1-run_length-multiplier_count, index+1)]))} for {run_length * total_multiplier} ({points})")
+                    output_string += f"{total_multiplier} run(s) of {run_length}{sorted(set([card_values[i] for i in range(index+1-run_length-multiplier_count, index+1)]))} for {run_length * total_multiplier} ({points})\n"
 
                     multiplier_count = 0
                     total_multiplier = 1
@@ -128,7 +128,7 @@ def find_runs(hand, flipped, points):
                 multiplier_count += multiplier-1
                 total_multiplier *= multiplier
                 points += run_length * total_multiplier
-                print(f"{total_multiplier} run(s) of {run_length}{sorted(set([card_values[i] for i in range(index+1-run_length-multiplier_count, index+1)]))} for {run_length * total_multiplier} ({points})")
+                output_string += f"{total_multiplier} run(s) of {run_length}{sorted(set([card_values[i] for i in range(index+1-run_length-multiplier_count, index+1)])).rep} for {run_length * total_multiplier} ({points})"
                 
             #Reset variables just to be safe
             multiplier_count = 0
@@ -136,45 +136,52 @@ def find_runs(hand, flipped, points):
             multiplier = 1
             run_length = 1
 
-    return points
+    return [points, output_string]
 
 #Finding Flush
-def find_flush(hand, flipped, points):
+def find_flush(hand, flipped, points, output_string):
     first_suit = hand[0].suit
+    local_points = 0
 
     if all(card.suit == flipped.suit for card in hand):
-        points += len(hand) + 1
-        print(f"Flush of {hand[0].suit} for {points}")
+        local_points += len(hand) + 1
     elif all(card.suit == first_suit for card in hand):
-        points += len(hand)
-        print(f"Flush of {first_suit} for {points}")
+        local_points += len(hand)
 
-    return points
+    if(local_points != 0):
+        points += local_points
+        output_string += f"Flush of {first_suit} for {local_points}\n"
+
+    return [points, output_string]
 
 #Calculate the score
 def calculate(hand, flipped):
     startTime = time.time()
+    points = 0
+    output_string = ""
 
     #Organize the hand
     hand = sorted(hand, key=lambda x: x.value)
     
-    print(f'Flipped: {flipped.value} {flipped.suit}')
-    for card in hand:
-        print(f"{card.value} {card.suit}")
+    output_string += f"Flipped:\n{flipped.value}\n\nHand:\n"
+    for card in reversed(hand):
+        output_string += f"{card.value}\n"
     
-    print("------------------------")
+    output_string += "------------------------\n"
 
     #Calculate points
-    points = 0
-    points = find_15s(hand, flipped, points)
-    points = find_pairs(hand, flipped, points)
-    points = find_runs(hand, flipped, points)
-    points = find_flush(hand, flipped, points)
-    points = nobs(hand, flipped, points)
+    [points, output_string] = find_15s(hand, flipped, points, output_string)
+    [points, output_string] = find_pairs(hand, flipped, points, output_string)
+    [points, output_string] = find_runs(hand, flipped, points, output_string)
+    [points, output_string] = find_flush(hand, flipped, points, output_string)
+    [points, output_string] = nobs(hand, flipped, points, output_string)
 
-    print("------------------------")
-    print(f'Total points: {points}')
+    output_string += "------------------------\n"
+    output_string += f"Total points: {points}"
 
     endTime = time.time()
-    print(f"CalculationTime: {endTime - startTime}s")
-    return points
+
+    print(output_string)
+    print(f"\nCalculationTime: {endTime - startTime}s")
+
+    return points, output_string
