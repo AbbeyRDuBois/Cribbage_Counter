@@ -23,9 +23,7 @@ class Main_Window(qtw.QMainWindow):
     #Removes last card in the list
     def delete_card(self):
         if self.cards != 1:
-            suit = self.card_layout.itemAtPosition(self.cards-1,0).widget()
             rank = self.card_layout.itemAtPosition(self.cards-1,1).widget()
-            self.card_layout.removeWidget(suit)
             self.card_layout.removeWidget(rank)
             self.cards -= 1
 
