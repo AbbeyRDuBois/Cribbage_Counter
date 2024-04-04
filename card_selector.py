@@ -155,6 +155,6 @@ if __name__ == '__main__':
     app = qtw.QApplication(sys.argv)
     window = Main_Window()
     window.setWindowTitle('Cribbage Counter')
-    window.setGeometry(100,100,400,325)
+    window.setGeometry(100,100,400,420)
     window.show()
     sys.exit(app.exec())
