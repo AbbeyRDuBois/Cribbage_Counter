@@ -91,18 +91,20 @@ class Main_Window(qtw.QMainWindow):
 
     #Does calculation once "Done" is clicked
     def make_cards(self):
+        suits = ["Heart", "Diamond", "Club", "Spade"]
         suit = self.flipped_layout.itemAtPosition(0,0).widget()
         rank = self.flipped_layout.itemAtPosition(0,1).widget()
         if isinstance(suit, qtw.QComboBox) and isinstance(rank, qtw.QComboBox):
             suit = suit.currentText()
             rank = rank.currentText()
+            suits.remove(suit)
         self.flipped = crib_calc.Card(rank, suit)
 
         #Make a card for every entry in form and add it to Card Array
         did_nobs = False
         for i in range(self.cards):
-            suits = ["Heart", "Diamond", "Club", "Spade"]
-            suit = suits[i % 4]
+            
+            suit = suits[i % 3]
             rank = self.card_layout.itemAtPosition(i,1).widget()
             if isinstance(rank, qtw.QComboBox):
                 rank = rank.currentText()
