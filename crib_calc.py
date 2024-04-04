@@ -158,6 +158,7 @@ def calculate(hand, flipped):
     #Organize the hand
     hand = sorted(hand, key=lambda x: x.value)
     
+    print(f'Flipped: {flipped.value} {flipped.suit}')
     for card in hand:
         print(f"{card.value} {card.suit}")
     
