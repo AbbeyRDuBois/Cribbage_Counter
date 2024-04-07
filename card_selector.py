@@ -1,6 +1,7 @@
 #Foreign imports
 import sys
 import PyQt6.QtWidgets as qtw
+from random import randint
 
 #Local imports
 import crib_calc
@@ -14,18 +15,17 @@ class Main_Window(qtw.QMainWindow):
 
     #Creates new rank and suit boxes adds it to layout then increments how many cards you have
     def add_new_card(self):
-        self.card_layout.addWidget(self.make_suit_box(), self.cards, 0)
         self.card_layout.addWidget(self.make_rank_box(), self.cards, 1)
         self.cards += 1
+        self.layout.itemAt(4).widget().setText(f"Personal Hand ({self.cards})")
 
     #Removes last card in the list
-    def delete_card(self):
+    def remove_card(self):
         if self.cards != 1:
-            suit = self.card_layout.itemAtPosition(self.cards-1,0).widget()
             rank = self.card_layout.itemAtPosition(self.cards-1,1).widget()
-            self.card_layout.removeWidget(suit)
             self.card_layout.removeWidget(rank)
             self.cards -= 1
+            self.layout.itemAt(4).widget().setText(f"Personal Hand ({self.cards})")
 
     #Creates the Main Window
     def initUI(self, num_cards):
@@ -45,7 +45,7 @@ class Main_Window(qtw.QMainWindow):
 
         #Add the Remove Card button to top of window
         remove_card = qtw.QPushButton("Remove Card")
-        remove_card.clicked.connect(self.delete_card)
+        remove_card.clicked.connect(self.remove_card)
         self.layout.addWidget(remove_card)
 
         #Flipped Card
@@ -56,7 +56,7 @@ class Main_Window(qtw.QMainWindow):
         self.flipped_layout.addWidget(self.make_rank_box(), 0, 1)
 
         #Set up the new card layout
-        self.layout.addWidget(qtw.QLabel("Personal Hand"))
+        self.layout.addWidget(qtw.QLabel("Personal Hand (4)"))
         scroll = qtw.QScrollArea()
         self.card_layout = qtw.QGridLayout()
         wrapper_widget = qtw.QWidget()
@@ -64,6 +64,19 @@ class Main_Window(qtw.QMainWindow):
         scroll.setWidget(wrapper_widget)
         scroll.setWidgetResizable(True)
         self.layout.addWidget(scroll)
+
+        #Add a checkbox for flush
+        self.flush_layout = qtw.QGridLayout()
+        self.flush_layout.addWidget(self.make_suit_box(), 0, 0)
+        self.flush_layout.addWidget(qtw.QCheckBox(), 0, 1)
+        self.layout.addWidget(qtw.QLabel("Flush?"))
+        self.layout.addLayout(self.flush_layout)
+
+        #Add a checkbox for nobs
+        self.nobs_layout = qtw.QGridLayout()
+        self.nobs_layout.addWidget(qtw.QCheckBox())
+        self.layout.addWidget(qtw.QLabel("Nobs?"))
+        self.layout.addLayout(self.nobs_layout)
 
         #Add the Done Button to Bottom of window (will always stay at bottom)
         self.layout.addWidget(qtw.QLabel(""))
@@ -78,34 +91,61 @@ class Main_Window(qtw.QMainWindow):
 
     #Does calculation once "Done" is clicked
     def make_cards(self):
+        suits = ["Heart", "Diamond", "Club", "Spade"]
         suit = self.flipped_layout.itemAtPosition(0,0).widget()
         rank = self.flipped_layout.itemAtPosition(0,1).widget()
         if isinstance(suit, qtw.QComboBox) and isinstance(rank, qtw.QComboBox):
             suit = suit.currentText()
             rank = rank.currentText()
+            suits.remove(suit)
         self.flipped = crib_calc.Card(rank, suit)
 
         #Make a card for every entry in form and add it to Card Array
+        did_nobs = False
         for i in range(self.cards):
-            suit = self.card_layout.itemAtPosition(i,0).widget()
+            
+            suit = suits[i % 3]
             rank = self.card_layout.itemAtPosition(i,1).widget()
-            if isinstance(suit, qtw.QComboBox) and isinstance(rank, qtw.QComboBox):
-                suit = suit.currentText()
+            if isinstance(rank, qtw.QComboBox):
                 rank = rank.currentText()
+                if(self.flush_layout.itemAtPosition(0,1).widget().isChecked()): #Check for flush
+                    suit = self.flush_layout.itemAtPosition(0,0).widget().currentText()
+                elif(self.nobs_layout.itemAtPosition(0,0).widget().isChecked() and rank == 'J' and did_nobs == False):
+                    suit = self.flipped.suit
+                    did_nobs = True
+
                 self.hand.append(crib_calc.Card(rank, suit))
 
-        #Display score until clicked
-        button = qtw.QPushButton(f'{crib_calc.calculate(self.hand, self.flipped)} points', self)
+        #Get score to display until clicked
+        [points, output] = crib_calc.calculate(self.hand, self.flipped)
+
+        #Initiate layout
+        centralWidget = qtw.QWidget()
+        self.setCentralWidget(centralWidget)
+        self.layout = qtw.QVBoxLayout(centralWidget)
+
+        #Add the points button to return to the game
+        button = qtw.QPushButton(f'{points} points\n\n(Click here for next hand)', self)
         button.clicked.connect(lambda: self.initUI(len(self.hand)))
-        self.setCentralWidget(button)
+        self.layout.addWidget(button)
+
+        #Add the scroll box for the score output
+        scroll = qtw.QScrollArea()
+        #self.output_layout = qtw.QGridLayout()
+        output_widget = qtw.QLabel(f"{output}")
+        scroll.setWidget(output_widget)
+        scroll.setWidgetResizable(True)
+        self.layout.addWidget(scroll)
 
     #Add suits to combo box same way calculator takes them
     def make_suit_box(self):
         suit_box = qtw.QComboBox()
-        suit_box.addItem("Heart")
-        suit_box.addItem("Diamond")
+
         suit_box.addItem("Spade")
         suit_box.addItem("Club")
+        suit_box.addItem("Diamond")
+        suit_box.addItem("Heart")
+        
         return suit_box
     
     #Add cards to combo box same way that calculator takes them
@@ -131,6 +171,6 @@ if __name__ == '__main__':
     app = qtw.QApplication(sys.argv)
     window = Main_Window()
     window.setWindowTitle('Cribbage Counter')
-    window.setGeometry(100,100,400,325)
+    window.setGeometry(100,100,400,420)
     window.show()
     sys.exit(app.exec())
