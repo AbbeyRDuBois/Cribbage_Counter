@@ -53,9 +53,9 @@ async def handle_user_messages(msg):
     
     #Links to other media
     elif(message == '!join'):
-        return join(message.author)
+        return join(msg.author)
     elif(message == '!unjoin'):
-        return unjoin(message.author)
+        return unjoin(msg.author)
     elif(message == '!unjoinall'):
         return unjoinall()
     elif(message == '!standard'):
@@ -63,11 +63,11 @@ async def handle_user_messages(msg):
     elif(message == '!mega'):
         return mega()
     elif(message == '!start'):
-        return start()
-    elif(re.search('![0-9]+') != None):
-        return card_select(message.author, int(message[1:]))
+        return await start(msg.author)
+    elif(re.search('![0-9]+', message) != None):
+        return await card_select(msg.author, int(message[1:]))
     elif(message == '!end'):
-        return end(message.author)
+        return end(msg.author)
     
     #Default case (orders bot doesn't understand)
     return ''
@@ -76,7 +76,7 @@ def join(author):
     if(game.game_started == False):
         #Add person to player list and send confirmation message
         if(author not in game.players):
-            if(len(game.players < 4)):
+            if(len(game.players) < 4):
                 game.players.append(author)
                 return f"Welcome to the game, {author.name}! Type !start to begin game with {len(game.players)} players."
             else:
@@ -111,7 +111,7 @@ def mega(author):
         game.hand_size = 8
         return f"{author.name} has changed game mode to standard. Use !standard to play regular cribbage and !start to begin."
     
-def start(author):
+async def start(author):
     if(game.game_started == False):
         #Start game
         if(author in game.players):
@@ -143,19 +143,21 @@ def start(author):
             for _ in range(num_players):
                 game.points.append(0)
                 game.end.append(False)
+                game.num_thrown.append(0)
 
             #Get hands
             game.hands = game.deck.get_hands(num_players, game.card_count + game.throw_count)
 
             #Send hands to DMs
-            for player_index in range(game.players):
-                game.players[player_index].send(f"Hand: {[f'!{card_index} -> {game.hands[player_index][card_index]}' for card_index in range(game.hands[player_index])]}")
+            for player_index in range(len(game.players)):
+                await game.players[player_index].send(f"Hand: {[f'!{card_index} -> {game.hands[player_index][card_index].display()}' for card_index in range(len(game.hands[player_index]))]}")
 
-            return f'''{author.name} has started the game. It is {game.players[game.cribIndex % num_players]}'s crib.'''
+            return f'''{author.name} has started the game. It is {game.players[game.crib_index % num_players]}'s crib.'''
         else:
             return f"You can't start a game you aren't queued for, {author.name}."
         
-def card_select(author, card_index):
+async def card_select(author, card_index):
+    print(card_index)
     if(author in game.players):
         #Get player index
         player_index = game.players.index(author)
@@ -171,7 +173,7 @@ def card_select(author, card_index):
                     game.num_thrown[player_index] += 1
 
                     #Send confirmation to DMs
-                    author.send(f"Sent {card.display()} to {game.players[game.cribIndex % len(game.players)]}. Choose {game.throw_count - game.num_thrown[player_index]} more.\nHand: {[f'!{card_index} -> {game.hands[player_index][card_index]}' for card_index in range(game.hands[player_index])]}")
+                    await author.send(f"Sent {card.display()} to {game.players[game.crib_index % len(game.players)]}. Choose {game.throw_count - game.num_thrown[player_index]} more.\nHand: {[f'!{card_index} -> {game.hands[player_index][card_index].display()}' for card_index in range(len(game.hands[player_index]))]}")
 
                     if(game.num_thrown[player_index] == game.throw_count):
                         all_done = True

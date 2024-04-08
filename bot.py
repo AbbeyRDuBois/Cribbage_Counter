@@ -24,6 +24,6 @@ def run_bot():
         if msg.author == client.user:
             return
         
-        await message.process_Message(msg)
+        await message.process_message(msg)
 
     client.run(discord_token)
