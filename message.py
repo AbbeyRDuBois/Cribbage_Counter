@@ -242,9 +242,12 @@ async def card_select(author, card_index):
                     if(can_play):
                         print("in can play")
                         await game.players[player_index].send(game.get_hand_string(player_index))
+                        print(points)
                         if(points > 0):
+                            print("got points?")
                             return f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
                         else:
+                            print("Oof")
                             return f'''{author.name} played {card.display()}, for a total of {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
                     elif(pegging_done):
                         print('In pegging done')
@@ -275,9 +278,20 @@ async def card_select(author, card_index):
                         return output_string
                     else:
                         print("31")
-                        game.pegging_index += 2
+                        my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
+                        print(my_sum)
+                        game.pegging_index += 1
                         game.pegging_list = []
-                        f'''It is now {author.name}'s turn to play.'''
+
+                        print(game.pegging_index)
+
+                        print((game.pegging_index-1) % len(game.players))
+                        print(game.pegging_index % len(game.players))
+                        if(my_sum != 31):
+                            game.points[(game.pegging_index-1) % len(game.players)] += 1
+                            return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got 1 point for last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+                        else:
+                            return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got 31 for 2 points. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
     return ''
 
 def end(author):
