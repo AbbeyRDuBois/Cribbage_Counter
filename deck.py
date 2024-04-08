@@ -44,6 +44,7 @@ class Card:
 
 class Deck:
     def __init__(self):
+        self.deck = []
         self.reset_deck()
         
     def reset_deck(self):
