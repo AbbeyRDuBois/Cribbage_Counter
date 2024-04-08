@@ -2,7 +2,7 @@
 import PyQt6.QtWidgets as qtw
 
 #Local imports
-import hand_points
+import calculate_points
 import home
 import deck
 
@@ -146,9 +146,9 @@ def make_cards(window):
     output = ''
     #Get score to display until clicked
     if(window.crib_layout.itemAtPosition(0,0).widget().isChecked()):
-        [points, output] = hand_points.calculate_crib(hand, flipped)
+        [points, output] = calculate_points.calculate_crib(hand, flipped)
     else:
-        [points, output] = hand_points.calculate_hand(hand, flipped)
+        [points, output] = calculate_points.calculate_hand(hand, flipped)
 
     #Initiate layout
     centralWidget = qtw.QWidget()

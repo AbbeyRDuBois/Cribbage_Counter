@@ -38,6 +38,9 @@ class Card:
             return 10
         else:
             return int(self.value)
+        
+    def display(self):
+        return f'{self.value} {self.suit}'
 
 class Deck:
     def __init__(self):
@@ -46,6 +49,7 @@ class Deck:
     def reset_deck(self):
         self.flipped = None #Card that gets flipped after throwing cards away
         self.hands = [] #List of lists with Card()s that represent player hands
+        self.extra = [] #List of cards that were removed with get_card() for crib
 
         for suit in SUITS:
             for value in VALUES:
@@ -72,3 +76,12 @@ class Deck:
             del self.deck[card]
 
         return self.flipped
+    
+    def get_card(self):
+        if(len(self.deck) >= 1):
+            card = randint(0, len(self.deck)-1)
+            self.extra.append(self.deck[card])
+            del self.deck[card]
+
+            return self.extra[-1]
+        return None
