@@ -43,12 +43,15 @@ def initUI(window, num_cards):
 #Checks if player can peg
 def can_peg(hand, cur_sum):
     #Check for basic case before iterating. Probably doesn't save time for small hands, but whatever.
-    if(cur_sum <= 21):
+    if(cur_sum <= 21 and len(hand) > 0):
+        print("whoops")
         return True
     else:
         for card in hand:
             if(card.to_int_15s() + cur_sum <= 31):
+                print("Whelps")
                 return True
+    print("Take that, Jones!")
     return False
 
 #Returns the player that won or None if no winner

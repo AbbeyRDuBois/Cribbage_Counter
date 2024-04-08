@@ -1,5 +1,6 @@
 #Foreign imports
 import re
+import copy
 
 #Local imports
 import game
@@ -146,7 +147,8 @@ async def start(author):
                 game.num_thrown.append(0)
 
             #Get hands
-            game.hands = game.deck.get_hands(num_players, game.card_count + game.throw_count)
+            game.hands = copy.copy(game.deck.get_hands(num_players, game.card_count + game.throw_count))
+            print(game.deck.hands)
 
             #Send hands to DMs
             for player_index in range(len(game.players)):
@@ -230,19 +232,27 @@ async def card_select(author, card_index):
                     #Make sure next person can play. If go, the reset.
                     can_play = False
                     pegging_done = True
+                    print(game.hands)
                     for ii in range(len(game.players)):
+                        print(game.pegging_index)
+                        print(game.pegging_index % len(game.players))
                         if(len(game.hands[game.pegging_index % len(game.players)]) > 0):
                             pegging_done = False
                         game.pegging_index += 1
+                        print(cur_sum)
                         if(game.can_peg(game.hands[game.pegging_index % len(game.players)], cur_sum)):
+                            print("peg me, charlie")
                             can_play = True
                             break
+                    print(pegging_done)
 
                     #If a player who can play was found, let them play. Otherwise, increment to next player and reset.
                     if(can_play):
                         print("in can play")
-                        await game.players[player_index].send(game.get_hand_string(player_index))
+                        if(len(game.hands[player_index]) > 0):
+                            await game.players[player_index].send(game.get_hand_string(player_index))
                         print(points)
+                        print(game.pegging_index)
                         if(points > 0):
                             print("got points?")
                             return f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
@@ -251,6 +261,19 @@ async def card_select(author, card_index):
                             return f'''{author.name} played {card.display()}, for a total of {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
                     elif(pegging_done):
                         print('In pegging done')
+                        my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
+                        print(my_sum)
+                        game.pegging_index += 1
+                        game.pegging_list = []
+
+                        print(game.pegging_index)
+
+                        print((game.pegging_index-1) % len(game.players))
+                        print(game.pegging_index % len(game.players))
+                        print(game.deck.hands)
+                        game.hands = copy.copy(game.deck.hands)
+                        print(game.hands)
+
                         #Calculate points.
                         for player_index in range(len(game.players)):
                             print("starting for")
@@ -272,11 +295,18 @@ async def card_select(author, card_index):
                         print("Ending round")
                         #Reset for next round and send group message with point totals
                         game.reset_round()
-                        output_string = f"Everyone is done pegging."
+                        output_string = ""
+                        if(my_sum != 31):
+                            output_string += f"{game.players[(game.pegging_index-1) % len(game.players)].name} got 1 point for last card.\n"
+                        else:
+                            output_string += f"{game.players[(game.pegging_index-1) % len(game.players)].name} got 31 point for 2 points.\n"
+                        output_string += f"Everyone is done pegging."
                         for player_index in range(len(game.players)):
                             output_string += f"\n{game.players[player_index].name} has {game.points[player_index]} points."
                         return output_string
                     else:
+                        if(len(game.hands[player_index]) > 0):
+                            await game.players[player_index].send(game.get_hand_string(player_index))
                         print("31")
                         my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
                         print(my_sum)
@@ -287,7 +317,7 @@ async def card_select(author, card_index):
 
                         print((game.pegging_index-1) % len(game.players))
                         print(game.pegging_index % len(game.players))
-                        if(my_sum != 31):
+                        if(my_sum != 31): #TODO: add points on for pairs, 15s, runs in addition to last card/31
                             game.points[(game.pegging_index-1) % len(game.players)] += 1
                             return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got 1 point for last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
                         else:
