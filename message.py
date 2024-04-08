@@ -142,6 +142,7 @@ def start(author):
             #Initiate points
             for _ in range(num_players):
                 game.points.append(0)
+                game.end.append(False)
 
             #Get hands
             game.hands = game.deck.get_hands(num_players, game.card_count + game.throw_count)
@@ -252,3 +253,26 @@ def card_select(author, card_index):
                         game.pegging_index += 2
                         game.pegging_list = []
                         f'''It is now {author.name}'s turn to play.'''
+
+def end(author):
+    if(author in game.players):
+        #Get player index
+        player_index = game.players.index(author)
+
+        if(game.game_started == True):
+            game.end[player_index] = True
+            
+            #Check to see if all players agree
+            game_over = True
+            for ii in range(len(game.end)):
+                if(game.end[ii] == False):
+                    game_over = False
+                    break
+
+            if(game_over == True):
+                game.end_game()
+                return f'''Game has been ended early by unanimous vote.'''
+            else:
+                f'''{author.name} wants to end the game early. Type !end to agree.'''
+        else:
+            return f'''You can't end a game that hasn't started yet, {author.name}. Use !unjoin to leave queue.'''
