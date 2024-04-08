@@ -13,23 +13,47 @@ def nibs(flipped):
 
     #For Nibs (flipping a jack)
     if flipped.value == deck.VALUES[-3]:
-        print("Nibs for 2")
         points += 2
 
     return points
 
 #Check points for counting, with cur_card NOT in old_cards, but cur_card IS included in sum
 def check_points(cur_card, old_cards, sum):
-    if(len(old_cards) > 0):
-        #Check for pair
-        if(cur_card.value == old_cards[-1].value):
-            return 2
-        if(sum == 15 or sum == 31):
-            return 2
-        else:
-            [points, _] = find_runs(old_cards[-2:], cur_card, 0, '')
-            return points
-    return 0
+    points = 0
+    if(len(old_cards) >= 1):
+        if(cur_card.value == old_cards[-1].value): #Check for pair
+            points += 2
+            if(len(old_cards) >= 2):
+                if(cur_card.value == old_cards[-2].value): #Check for double pair (3 of a kind)
+                    points += 4 #2 + 4 = 6
+                    if(len(old_cards) >= 3):
+                        if(cur_card.value == old_cards[-3].value): #Check for double pair (3 of a kind)
+                            points += 6 #6 + 6 = 12
+    if(sum == 15 or sum == 31): #Check for 15 and 31
+        points += 2
+    if(len(old_cards) >= 2): #Find longest run if enough cards
+        complete_run = True
+        total_card_index = 2
+        while(complete_run == True and total_card_index <= len(old_cards)):
+            #Populate card list for runs, starting with 3 and incrementing until run is broken or there are no more cards
+            cards = [cur_card.to_int_runs()]
+            for card_index in range(1, total_card_index+1):
+                cards.append(old_cards[-card_index].to_int_runs())
+
+            #sort cards to determine run and increment total_caard_index for next iteration
+            cards = sorted(cards, reverse=True)
+            total_card_index += 1
+
+            #See if run is valid
+            for ii in range(len(cards)-1):
+                if(cards[ii]-1 != cards[ii+1]):
+                    complete_run = False
+                    break
+
+            #If valid run, get number of points
+            if(complete_run == True):
+                points = len(cards)
+    return points
 
 #Finding Nobs
 def nobs(hand, flipped, points=0, output_string=''):
@@ -77,8 +101,6 @@ def find_runs(hand, flipped, points=0, output_string=''):
     hand.append(flipped)
     hand.sort(key=lambda card: card.to_int_runs(), reverse=True)
     card_values = [card.to_int_runs() for card in hand]
-    print([card.value for card in hand])
-    print(card_values)
     
     #Set up variables
     multiplier_count = 0 #Counts duplicates in runs for displaying
@@ -118,7 +140,7 @@ def find_runs(hand, flipped, points=0, output_string=''):
                 multiplier_count += multiplier-1
                 total_multiplier *= multiplier
                 points += run_length * total_multiplier
-                output_string += f"{total_multiplier} run(s) of {run_length}{sorted(set([hand[i].value for i in range(index+1-run_length-multiplier_count, index+1)])).rep} for {run_length * total_multiplier} ({points})"
+                output_string += f"{total_multiplier} run(s) of {run_length}{sorted(set([hand[i].value for i in range(index+1-run_length-multiplier_count, index+1)]))} for {run_length * total_multiplier} ({points})"
                 
             #Reset variables just to be safe
             multiplier_count = 0

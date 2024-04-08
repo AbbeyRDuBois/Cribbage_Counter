@@ -61,6 +61,14 @@ def get_winner():
         
 #Resets the round by changing variables
 def reset_round():
+    global pegging_phase
+    global throw_away_phase
+    global pegging_list
+    global crib_index
+    global pegging_index
+    global hands
+    global crib
+
     pegging_phase = False
     throw_away_phase = True
     pegging_list = []
@@ -113,3 +121,16 @@ def end_game():
     game_started = False
     throw_away_phase = False
     pegging_phase = False
+
+#Get string of hand to print for player at given index
+def get_hand_string(player_index):
+    global hands
+
+    output_string = f'''Hand:\n'''
+    for card in hands[player_index]:
+        output_string += f"{card.display()},  "
+    output_string = output_string[:-3] + "\n"
+    for card_index in range(len(hands[player_index])):
+        output_string += f"!{card_index},      "
+    output_string = output_string[:-7] + "\n"
+    return output_string
