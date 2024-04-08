@@ -234,6 +234,7 @@ async def card_select(author, card_index):
 
                     #If a player who can play was found, let them play. Otherwise, increment to next player and reset.
                     if(can_play):
+                        game.players[player_index].send(f'''Hand: {[f'!{card_index} -> {game.hands[player_index][card_index].display()}' for card_index in range(len(game.hands[player_index]))]}''')
                         return f'''{author.name} played {card.display()}, for a total of {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
                     elif(pegging_done):
                         print("pegging done")
