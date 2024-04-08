@@ -40,7 +40,7 @@ def initUI(window, num_cards):
     window.layout.addWidget(window.home)
     window.layout.addWidget(qtw.QLabel("Cribbage Discord bot coming soon (hopefully)!"))
 
-#Function to see if player can peg
+#Checks if player can peg
 def can_peg(hand, cur_sum):
     #Check for basic case before iterating. Probably doesn't save time for small hands, but whatever.
     if(cur_sum <= 21):
@@ -51,6 +51,7 @@ def can_peg(hand, cur_sum):
                 return True
     return False
 
+#Returns the player that won or None if no winner
 def get_winner():
     for player_index in players:
         if(points[player_index] >= point_goal):
@@ -58,6 +59,7 @@ def get_winner():
         else:
             return None
         
+#Resets the round by changing variables
 def reset_round():
     pegging_phase = False
     throw_away_phase = True
@@ -70,6 +72,7 @@ def reset_round():
     for ii in range(num_thrown):
         num_thrown[ii] = 0
         
+#Ends the game by resetting every variable
 def end_game():
     global deck
     global players
