@@ -6,6 +6,7 @@ import hand_points
 import home
 import deck
 
+
 flipped = None
 hand = []
 cards = 0

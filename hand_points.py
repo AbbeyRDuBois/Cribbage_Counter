@@ -1,7 +1,11 @@
+#Foreign imports
 import itertools
 import copy
 import time
+
+#Local imports
 import deck
+
 
 #Finding Nibs  
 def nibs(flipped):
