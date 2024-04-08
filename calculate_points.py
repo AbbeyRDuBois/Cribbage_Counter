@@ -20,14 +20,16 @@ def nibs(flipped):
 
 #Check points for counting, with cur_card NOT in old_cards, but cur_card IS included in sum
 def check_points(cur_card, old_cards, sum):
-    #Check for pair
-    if(cur_card.value == old_cards[-1].value):
-        return 2
-    if(sum == 15 or sum == 31):
-        return 2
-    else:
-        [points, _] = find_runs(old_cards[-2:], cur_card, 0, '')
-        return points
+    if(len(old_cards) > 0):
+        #Check for pair
+        if(cur_card.value == old_cards[-1].value):
+            return 2
+        if(sum == 15 or sum == 31):
+            return 2
+        else:
+            [points, _] = find_runs(old_cards[-2:], cur_card, 0, '')
+            return points
+    return 0
 
 #Finding Nobs
 def nobs(hand, flipped, points=0, output_string=''):

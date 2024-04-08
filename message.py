@@ -157,8 +157,8 @@ async def start(author):
             return f"You can't start a game you aren't queued for, {author.name}."
         
 async def card_select(author, card_index):
-    print(card_index)
     if(author in game.players):
+        print("in func again")
         #Get player index
         player_index = game.players.index(author)
 
@@ -195,16 +195,20 @@ async def card_select(author, card_index):
                                 winner = game.get_winner()
                                 game.end_game()
                                 return f'''{winner.name} has won the game from nibs ({flipped.display})! Everything will now be reset.'''
+                            
+                            game.throw_away_phase = False
+                            game.pegging_phase = True
 
                             return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\nPegging will now begin with {game.players[game.pegging_index]}.'''
                     else:
                         return ''
             elif(game.pegging_phase == True):
                 #Make sure it's the author's turn and sum <= 31
-                cur_sum = sum(game.pegging_list) + card.to_int_15s()
-                if(player_index == game.pegging_index and cur_sum <= 31):
+                card = game.hands[player_index][card_index]
+                cur_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list]) + card.to_int_15s()
+
+                if((player_index == game.pegging_index % len(game.players)) and cur_sum <= 31):
                     #Remove card from hand, get points, and add to pegging list
-                    card = game.hands[player_index][card_index]
                     game.hands[player_index].remove(card)
                     points = cp.check_points(card, game.pegging_list, cur_sum)
                     game.points[player_index] += points
@@ -226,16 +230,19 @@ async def card_select(author, card_index):
                         if(game.can_peg(game.hands[game.pegging_index % len(game.players)], cur_sum)):
                             can_play = True
                             break
+                    print("post loop")
 
                     #If a player who can play was found, let them play. Otherwise, increment to next player and reset.
                     if(can_play):
-                        return f'''It is now {author.name}'s turn to play.'''
+                        return f'''{author.name} played {card.display()}, for a total of {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
                     elif(pegging_done):
+                        print("pegging done")
                         #Calculate points.
                         for player_index in range(len(game.players)):
                             [get_points, get_output] = cp.calculate_hand(game.hands[player_index], game.deck.get_flipped())
                             game.points[player_index] += get_points
 
+                            print("about to hop into dms")
                             #Send calculation to DMs
                             game.players[player_index].send(get_output)
 
@@ -245,6 +252,7 @@ async def card_select(author, card_index):
                                 game.end_game()
                                 return f'''{winner.name} has won the game! Everything will now be reset.'''
 
+                        print("#reset, Babyyyy")
                         #Reset for next round and send group message with point totals
                         game.reset_round()
                         output_string = f"Everyone is done pegging."
@@ -255,6 +263,8 @@ async def card_select(author, card_index):
                         game.pegging_index += 2
                         game.pegging_list = []
                         f'''It is now {author.name}'s turn to play.'''
+    print('Oops, all oreos')
+    return ''
 
 def end(author):
     if(author in game.players):

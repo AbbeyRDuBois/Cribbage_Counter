@@ -53,7 +53,7 @@ def can_peg(hand, cur_sum):
 
 #Returns the player that won or None if no winner
 def get_winner():
-    for player_index in players:
+    for player_index in range(len(players)):
         if(points[player_index] >= point_goal):
             return players[player_index]
         else:
