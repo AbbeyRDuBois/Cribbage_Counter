@@ -14,7 +14,8 @@ def help_message():
         '**!join**': Let the bot know that you'd like to play cribbage.
         '**!unjoin**': Let the bot know that you changed your mind and don't want to play.
         '**!unjoinall**': Remove all players from lobby. Only use if someone forgot to !unjoin.
-        '**!cards[0-9]+**': Games will use the set number of cards.
+        '**!standard**': Play a regular game of cribbage (default).
+        '**!mega**': Play a game of mega hand (8 cards, twice as many points).
         '**!start**': Starts a game with up to 4 players who have done !join.
 
      - Throw Into Crib:
@@ -57,6 +58,10 @@ async def handle_user_messages(msg):
         return unjoin(message.author)
     elif(message == '!unjoinall'):
         return unjoinall()
+    elif(message == '!standard'):
+        return standard()
+    elif(message == '!mega'):
+        return mega()
     elif(message == '!start'):
         return start()
     elif(re.search('![0-9]+') != None):
@@ -93,6 +98,18 @@ def unjoinall(author):
         #Remove person from player list and send confirmation message
         game.players = []
         return f"{author.name} has purged the player list."
+    
+def standard(author):
+    if(game.game_started == False):
+        game.end_game()
+        return f"{author.name} has changed game mode to standard. Consider giving !mega a try, or use !start to begin."
+
+def mega(author):
+    if(game.game_started == False):
+        game.point_goal = 241
+        game.skunk_line = 180
+        game.hand_size = 8
+        return f"{author.name} has changed game mode to standard. Use !standard to play regular cribbage and !start to begin."
     
 def start(author):
     if(game.game_started == False):
@@ -156,8 +173,27 @@ def card_select(author, card_index):
                     author.send(f"Sent {card.display()} to {game.players[game.cribIndex % len(game.players)]}. Choose {game.throw_count - game.num_thrown[player_index]} more.\nHand: {[f'!{card_index} -> {game.hands[player_index][card_index]}' for card_index in range(game.hands[player_index])]}")
 
                     if(game.num_thrown[player_index] == game.throw_count):
-                        #TODO: Check if everyone is done. If so, game.throw_away_phase = False and display appropriately.
-                        return f'''{author.name} has finished putting cards in the crib.'''
+                        all_done = True
+                        for player_index in range(len(game.num_thrown)):
+                            if(game.num_thrown[player_index] < game.throw_count):
+                                all_done = False
+                                break
+
+                        #Check if everyone is done. If so, get flipped card and begin pegging round.
+                        if(not all_done):
+                            return f'''{author.name} has finished putting cards in the crib.'''
+                        else:
+                            flipped = game.deck.get_flipped()
+
+                            #Calculate nibs and possibly end game
+                            game.points[game.crib_index] += cp.nibs(flipped)
+
+                            if(game.get_winner() != None):
+                                winner = game.get_winner()
+                                game.end_game()
+                                return f'''{winner.name} has won the game from nibs ({flipped.display})! Everything will now be reset.'''
+
+                            return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\nPegging will now begin with {game.players[game.pegging_index]}.'''
                     else:
                         return ''
             elif(game.pegging_phase == True):
@@ -171,7 +207,11 @@ def card_select(author, card_index):
                     game.points[player_index] += points
                     game.pegging_list.append(card)
 
-                    #TODO: If pegged out, end game
+                    #If pegged out, end game
+                    if(game.get_winner() != None):
+                        winner = game.get_winner()
+                        game.end_game()
+                        return f'''{winner.name} has won the game! Everything will now be reset.'''
 
                     #Make sure next person can play. If go, the reset.
                     can_play = False
@@ -188,9 +228,26 @@ def card_select(author, card_index):
                     if(can_play):
                         return f'''It is now {author.name}'s turn to play.'''
                     elif(pegging_done):
-                        #TODO: Change vars and display points for everyone.
-                        game.pegging_phase = False
-                        return f'''Everyone is done pegging.'''
+                        #Calculate points.
+                        for player_index in range(len(game.players)):
+                            [get_points, get_output] = cp.calculate_hand(game.hands[player_index], game.deck.get_flipped())
+                            game.points[player_index] += get_points
+
+                            #Send calculation to DMs
+                            game.players[player_index].send(get_output)
+
+                            #Check for winner
+                            if(game.get_winner() != None):
+                                winner = game.get_winner()
+                                game.end_game()
+                                return f'''{winner.name} has won the game! Everything will now be reset.'''
+
+                        #Reset for next round and send group message with point totals
+                        game.reset_round()
+                        output_string = f"Everyone is done pegging."
+                        for player_index in range(len(game.players)):
+                            output_string += f"\n{game.players[player_index].name} has {game.points[player_index]} points."
+                        return output_string
                     else:
                         game.pegging_index += 2
                         game.pegging_list = []
