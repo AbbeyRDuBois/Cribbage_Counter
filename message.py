@@ -182,7 +182,7 @@ async def throw_away_phase_func(author, card_index):
 
                 #Calculate nibs and possibly end game
                 num_points = cp.nibs(flipped)
-                game.points[game.crib_index] += num_points
+                game.points[game.crib_index % len(game.players)] += num_points
 
                 if(game.get_winner() != None):
                     winner = game.get_winner()

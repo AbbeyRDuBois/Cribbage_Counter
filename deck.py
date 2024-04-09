@@ -44,10 +44,10 @@ class Card:
 
 class Deck:
     def __init__(self):
-        self.deck = []
         self.reset_deck()
         
     def reset_deck(self):
+        self.deck = []
         self.flipped = None #Card that gets flipped after throwing cards away
 
         for suit in SUITS:
