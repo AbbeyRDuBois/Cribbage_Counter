@@ -54,6 +54,9 @@ def can_peg(hand, cur_sum):
 
 #Returns the player that won or None if no winner
 def get_winner():
+    global players
+    global point_goal
+    
     for player_index in range(len(players)):
         if(points[player_index] >= point_goal):
             return players[player_index]
@@ -133,13 +136,12 @@ def end_game():
 def get_hand_string(player_index):
     global hands
 
-    output_string = f'''Sorted Hand: {[card.display() for card in hands[player_index]]}\n'''
-    output_string += f'''Hand:\n'''
-    for card in hands[player_index]:
-        output_string += f"{card.display()},  "
+    output_string = f"Hand:\n"
+    for card in [card.display() for card in sorted(hands[player_index], key=lambda x: x.to_int_runs())]:
+        output_string += f"{card},  "
     output_string = output_string[:-3] + "\n"
-    for card_index in range(len(hands[player_index])):
-        output_string += f"!{card_index},      "
+    for card in [card for card in sorted(hands[player_index], key=lambda x: x.to_int_runs())]:
+        output_string += f"!{hands[player_index].index(card)},      "
     output_string = output_string[:-7] + "\n"
     return output_string
 

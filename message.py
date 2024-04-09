@@ -200,10 +200,14 @@ async def throw_away_phase_func(author, card_index):
                     return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\n{game.players[game.crib_index % len(game.players)]} gets nibs for 2.\nPegging will now begin with {game.players[game.pegging_index]}.'''
         else:
             return ''
+    return ''
                     
 async def pegging_phase_func(author, card_index):
     #Get player index
     player_index = game.players.index(author)
+
+    if(game.players[game.pegging_index % len(game.players)] != game.players[player_index]):
+        return ''
 
     card = game.hands[player_index][card_index]
     cur_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list]) + card.to_int_15s()
@@ -215,7 +219,6 @@ async def pegging_phase_func(author, card_index):
         points = cp.check_points(card, game.pegging_list, cur_sum)
         game.points[player_index] += points
         game.pegging_list.append(card)
-        print(points)
 
         #If pegged out, end game
         if(game.get_winner() != None):
@@ -231,20 +234,24 @@ async def pegging_phase_func(author, card_index):
                 pegging_done = False
             game.pegging_index += 1
             if(game.can_peg(game.hands[game.pegging_index % len(game.players)], cur_sum)):
+                game.players[game.pegging_index % len(game.players)]
                 can_play = True
                 break
 
-        #If player still has cards, send them their hand
+        #If player still has cards, send them to their hand. Else, add mesage to print.
+        no_hand = ""
         if(len(game.hands[player_index]) > 0):
                 await game.players[player_index].send(game.get_hand_string(player_index))
+        else:
+            no_hand = f"{author.name} has played their last card.\n"
 
         #If a player who can play was found, let them play. Otherwise, increment to next player and reset.
         if(can_play):
             #Display data
             if(points > 0):
-                return f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+                return no_hand + f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
             else:
-                return f'''{author.name} played {card.display()}, bringing the total to {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+                return no_hand + f'''{author.name} played {card.display()}, bringing the total to {cur_sum}.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
         elif(pegging_done):
             #prepare for next round
             my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
@@ -258,9 +265,16 @@ async def pegging_phase_func(author, card_index):
             output_string = ""
             if(my_sum != 31):
                 game.points[(game.pegging_index-1) % len(game.players)] += 1
-                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) and last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.\n'''
+
+                #If pegged out, end game
+                if(game.get_winner() != None):
+                    winner = game.get_winner()
+                    game.end_game()
+                    return f'''{winner.name} has won the game! Everything will now be reset.'''
+
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card.\n'''
             else:
-                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.\n'''
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31.\n'''
             output_string += f"Everyone is done pegging.\nFlipped card: {game.deck.flipped.display()}\n"
 
             #Calculate points
@@ -273,7 +287,7 @@ async def pegging_phase_func(author, card_index):
                 await game.players[player_index].send("Hand:\n" + get_output)
 
                 #Add data to group output
-                output_string += f"{game.players[player_index].name}'s hand: {[hand_card.display() for hand_card in game.hands[player_index]]} for {get_points} points.\n"
+                output_string += f"{game.players[player_index].name}'s hand: {[hand_card.display() for hand_card in sorted(game.hands[player_index], key=lambda x: x.to_int_runs())]} for {get_points} points.\n"
 
                 #Check for winner
                 if(game.get_winner() != None):
@@ -284,7 +298,7 @@ async def pegging_phase_func(author, card_index):
             #Calculate crib
             [get_points, get_output] = cp.calculate_crib(game.crib, game.deck.flipped)
             game.points[game.crib_index % len(game.players)] += get_points
-            output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in game.crib]} for {get_points} points.\n"
+            output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in sorted(game.crib, key=lambda x: x.to_int_runs())]} for {get_points} points.\n"
 
             #Check for winner
             if(game.get_winner() != None):
@@ -324,9 +338,16 @@ async def pegging_phase_func(author, card_index):
             #Display depending on if they reached 31, and add the point for last card since summing to 31 was already calculated
             if(my_sum != 31):
                 game.points[(game.pegging_index-1) % len(game.players)] += 1
-                return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) and last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+
+                #If pegged out, end game
+                if(game.get_winner() != None):
+                    winner = game.get_winner()
+                    game.end_game()
+                    return f'''{winner.name} has won the game! Everything will now be reset.'''
+        
+                return no_hand + f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
             else:
-                return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+                return no_hand + f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
 
 
 def end(author):
@@ -348,6 +369,6 @@ def end(author):
                 game.end_game()
                 return f'''Game has been ended early by unanimous vote.'''
             else:
-                f'''{author.name} wants to end the game early. Type !end to agree.'''
+                return f'''{author.name} wants to end the game early. Type !end to agree.'''
         else:
             return f'''You can't end a game that hasn't started yet, {author.name}. Use !unjoin to leave queue.'''
