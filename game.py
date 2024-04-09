@@ -16,13 +16,12 @@ end = [] #List of players who wish to prematurely end the game
 num_thrown = [] #Number of cards thrown in crib, indexed same as players
 pegging_list = [] #List of cards in pegging round
 point_goal = 121 #Number of points to win
-skunk_line = 30 #Number of points from skunk line to end -1
-card_count = 4 #Number of cards in crib
+skunk_length = 30 #Number of points from skunk line to end -1
+crib_count = 4 #Number of cards in crib
 hand_size = 4 #Number of cards in a hand after throwing to crib
 crib_index = 0 #Crib belongs to players%len(players)
 pegging_index = 0 #(crib_index + 1) % len(players)
 throw_count = 0 #How many cards each player throws, initialized upon starting game
-num_for_good_luck = 0 #How many cards needed from the deck in the crib
 game_started = False #True if the game has begun, else False
 throw_away_phase = False #True if players still need to throw cards away
 pegging_phase = False #True if players are in the pegging phase
@@ -88,7 +87,7 @@ def reset_round():
     for ii in range(len(num_thrown)):
         num_thrown[ii] = 0
         
-#Ends the game by resetting every variable
+#Ends the game by resetting every variable to standard cribbage
 def end_game():
     global deck
     global players
@@ -100,13 +99,12 @@ def end_game():
     global num_thrown
     global pegging_list
     global point_goal
-    global skunk_line
-    global card_count
+    global skunk_length
+    global crib_count
     global hand_size
     global crib_index
     global pegging_index
     global throw_count
-    global num_for_good_luck
     global game_started
     global throw_away_phase
     global pegging_phase
@@ -121,13 +119,12 @@ def end_game():
     num_thrown = []
     pegging_list = []
     point_goal = 121
-    skunk_line = 90
-    card_count = 4
+    skunk_length = 30
+    crib_count = 4
     hand_size = 4
     crib_index = 0
     pegging_index = 0
     throw_count = 0
-    num_for_good_luck = 0
     game_started = False
     throw_away_phase = False
     pegging_phase = False
@@ -148,23 +145,18 @@ def get_hand_string(player_index):
 #Sets up game to work with num_players amount of people
 def create_game(num_players):
     global throw_count
-    global num_for_good_luck
     global points
     global end
     global num_thrown
 
     if(num_players == 1):
         throw_count = 2
-        num_for_good_luck = 2
     elif(num_players == 2):
         throw_count = 2
-        num_for_good_luck = 0
     elif(num_players == 3):
         throw_count = 1
-        num_for_good_luck = 1
     elif(num_players == 4):
         throw_count = 1
-        num_for_good_luck = 0
     else:
         return
     
@@ -174,17 +166,31 @@ def create_game(num_players):
         end.append(False)
         num_thrown.append(0)
 
+#Ends the game and returns a string with point details.
 def get_winner_string(winner):
     global players
     global points
     global point_goal
-    global skunk_line
+    global skunk_length
 
     player_scores = ""
     for point_index in range(len(points)):
-        if(points[point_index] < (point_goal - skunk_line - 1)):
-            player_scores += f"{players[point_index]} got skunked x{points[point_index] // (point_goal - skunk_line - 1)} at {points[point_index]} points.\n"
+        if(points[point_index] < (point_goal - skunk_length - 1)):
+            player_scores += f"{players[point_index]} got skunked x{(point_goal - points[point_index]) // skunk_length} at {points[point_index]} points.\n"
         else:
             player_scores += f"{players[point_index]} ended with {points[point_index]} points.\n"
-            end_game()
+
+    end_game()
     return player_scores + f"{winner.name} has won the game! Everything will now be reset."
+
+#Sets up game for mega hand
+def mega_hand():
+    global game_started
+    global point_goal
+    global skunk_length
+    global hand_size
+
+    if(game_started == False):
+        point_goal = 241
+        skunk_length = 180
+        hand_size = 8

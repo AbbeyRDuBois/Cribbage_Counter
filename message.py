@@ -107,9 +107,7 @@ def standard(author):
 
 def mega(author):
     if(game.game_started == False):
-        game.point_goal = 241
-        game.skunk_line = 180
-        game.hand_size = 8
+        game.mega_hand()
         return f"{author.name} has changed game mode to mega. Use !standard to play regular cribbage and !start to begin."
     
 async def start(author):
@@ -188,9 +186,13 @@ async def throw_away_phase_func(author, card_index):
                 if(game.get_winner() != None):
                     return game.get_winner_string(game.get_winner())
                 
+                #Make sure crib has proper number of cards
+                while(len(game.crib) < game.crib_count):
+                    game.crib.append(game.deck.get_card())
+                
+                #Make sure variables are set up for pegging round
                 game.throw_away_phase = False
                 game.pegging_phase = True
-
                 game.backup_hands = copy.deepcopy(game.hands)
 
                 if(num_points == 0):
@@ -355,9 +357,14 @@ def end(author):
                     break
 
             if(game_over == True):
-                game.end_game()
-                return f'''Game has been ended early by unanimous vote.'''
+                winner = 0
+                for point_index in range(1, len(game.points)):
+                    if(game.points[point_index] > game.points[winner]):
+                        winner = point_index
+                winner = game.players[winner]
+
+                return f"Game has been ended early by unanimous vote.\n" + game.get_winner_string(winner)
             else:
-                return f'''{author.name} wants to end the game early. Type !end to agree.'''
+                return f"{author.name} wants to end the game early. Type !end to agree."
         else:
-            return f'''You can't end a game that hasn't started yet, {author.name}. Use !unjoin to leave queue.'''
+            return f"You can't end a game that hasn't started yet, {author.name}. Use !unjoin to leave queue."
