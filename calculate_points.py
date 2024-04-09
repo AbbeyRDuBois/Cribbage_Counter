@@ -30,7 +30,7 @@ def check_points(cur_card, old_cards, sum):
                         if(cur_card.value == old_cards[-3].value): #Check for double pair (3 of a kind)
                             points += 6 #6 + 6 = 12
     if(sum == 15 or sum == 31): #Check for 15 and 31
-        points += 2
+        points += 2 #TODO: test with cur_card = 8, old_cards = ['J', '6', '7'], sum = 31 -> got 3 instead of 5
     if(len(old_cards) >= 2): #Find longest run if enough cards
         complete_run = True
         total_card_index = 2
