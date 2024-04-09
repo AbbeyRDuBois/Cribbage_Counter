@@ -278,15 +278,18 @@ async def card_select(author, card_index):
                         #Reset for next round and send group message with point totals
                         output_string = ""
                         if(my_sum != 31):
+                            game.points[(game.pegging_index-1) % len(game.players)] += 1
                             output_string += f"{game.players[(game.pegging_index-1) % len(game.players)].name} got 1 point for last card.\n"
                         else:
                             output_string += f"{game.players[(game.pegging_index-1) % len(game.players)].name} got 31 point for 2 points.\n"
                         print(output_string)
                         output_string += f"Everyone is done pegging.\n"
-                        output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in game.crib]}"
-                        game.points[game.crib_index % len(game.players)] += cp.calculate_crib(game.crib, game.deck.flipped)
+                        output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in game.crib]}\n"
+                        [get_points, get_output] = cp.calculate_crib(game.crib, game.deck.flipped)
+                        game.points[game.crib_index % len(game.players)] += get_points
+                        game.players[player_index].send(get_output)
                         for player_index in range(len(game.players)):
-                            output_string += f"{game.players[player_index].name} has {game.points[player_index]} points."
+                            output_string += f"{game.players[player_index].name} has {game.points[player_index]} points.\n"
                         print("output_string:")
                         print(output_string)
                         game.reset_round()

@@ -54,7 +54,7 @@ def check_points(cur_card, old_cards, sum):
             if(complete_run == True):
                 points = len(cards)
             complete_run = True
-            
+
     return points
 
 #Finding Nobs
@@ -142,7 +142,7 @@ def find_runs(hand, flipped, points=0, output_string=''):
                 multiplier_count += multiplier-1
                 total_multiplier *= multiplier
                 points += run_length * total_multiplier
-                output_string += f"{total_multiplier} run(s) of {run_length}{sorted(set([hand[i].value for i in range(index+1-run_length-multiplier_count, index+1)]))} for {run_length * total_multiplier} ({points})"
+                output_string += f"{total_multiplier} run(s) of {run_length}{sorted(set([hand[i].value for i in range(index+1-run_length-multiplier_count, index+1)]))} for {run_length * total_multiplier} ({points})\n"
                 
             #Reset variables just to be safe
             multiplier_count = 0
