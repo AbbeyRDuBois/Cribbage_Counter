@@ -10,6 +10,7 @@ deck = Deck() #Deck you play with
 players = [] #List of Discord users that are playing
 points = [] #Number of points, indexed same as players
 hands = [] #Hands, indexed same as players
+backup_hands = [] #Hands that always have hand_size cards, indexed same as players
 crib = [] #Crib cards
 end = [] #List of players who wish to prematurely end the game
 num_thrown = [] #Number of cards thrown in crib, indexed same as players
@@ -17,7 +18,7 @@ pegging_list = [] #List of cards in pegging round
 point_goal = 121 #Number of points to win
 skunk_line = 90 #Number of points to skunk line
 card_count = 4 #Number of cards in crib
-hand_size = 0
+hand_size = 0 #Number of cards in a hand after throwing to crib
 crib_index = 0 #Crib belongs to players%len(players)
 pegging_index = 0 #(crib_index + 1) % len(players)
 throw_count = 0 #How many cards each player throws, initialized upon starting game
@@ -44,14 +45,11 @@ def initUI(window, num_cards):
 def can_peg(hand, cur_sum):
     #Check for basic case before iterating. Probably doesn't save time for small hands, but whatever.
     if(cur_sum <= 21 and len(hand) > 0):
-        print("whoops")
         return True
     else:
         for card in hand:
             if(card.to_int_15s() + cur_sum <= 31):
-                print("Whelps")
                 return True
-    print("Take that, Jones!")
     return False
 
 #Returns the player that won or None if no winner
@@ -71,6 +69,7 @@ def reset_round():
     global crib_index
     global pegging_index
     global hands
+    global backup_hands
     global crib
 
     deck.reset_deck()
@@ -80,6 +79,7 @@ def reset_round():
     crib_index += 1
     pegging_index = (crib_index + 1) % len(players)
     hands = []
+    backup_hands = []
     crib = []
 
     for ii in range(len(num_thrown)):
@@ -91,6 +91,7 @@ def end_game():
     global players
     global points
     global hands
+    global backup_hands
     global crib
     global end
     global num_thrown
@@ -111,6 +112,7 @@ def end_game():
     players = []
     points = []
     hands = []
+    backup_hands = []
     crib = []
     end = []
     num_thrown = []
@@ -139,3 +141,37 @@ def get_hand_string(player_index):
         output_string += f"!{card_index},      "
     output_string = output_string[:-7] + "\n"
     return output_string
+
+#Sets up game to work with num_players amount of people
+def create_game(num_players):
+    global throw_count
+    global num_for_good_luck
+    global hand_size
+    global points
+    global end
+    global num_thrown
+
+    if(num_players == 1):
+        throw_count = 2
+        num_for_good_luck = 2
+        hand_size = 6
+    elif(num_players == 2):
+        throw_count = 2
+        num_for_good_luck = 0
+        hand_size = 6
+    elif(num_players == 3):
+        throw_count = 1
+        num_for_good_luck = 1
+        hand_size = 5
+    elif(num_players == 4):
+        throw_count = 1
+        num_for_good_luck = 0
+        hand_size = 5
+    else:
+        return
+    
+    #Initiate points
+    for _ in range(num_players):
+        points.append(0)
+        end.append(False)
+        num_thrown.append(0)

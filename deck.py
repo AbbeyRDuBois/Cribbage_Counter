@@ -49,26 +49,24 @@ class Deck:
         
     def reset_deck(self):
         self.flipped = None #Card that gets flipped after throwing cards away
-        self.hands = [] #List of lists with Card()s that represent player hands
-        self.extra = [] #List of cards that were removed with get_card() for crib
 
         for suit in SUITS:
             for value in VALUES:
                 self.deck.append(Card(value, suit))
 
     def get_hands(self, num_hands, num_cards):
-        if(len(self.hands) == 0):
-            #Check that values are within bounds
-            if(num_hands * num_cards <= len(self.deck)):
-                for h in range(num_hands):
-                    hand = []
-                    for c in range(num_cards):
-                        card = randint(0, len(self.deck)-1)
-                        hand.append(self.deck[card])
-                        del self.deck[card]
-                    self.hands.append(hand)
+        #Check that values are within bounds
+        hands = []
+        if(num_hands * num_cards <= len(self.deck)):
+            for h in range(num_hands):
+                hand = []
+                for c in range(num_cards):
+                    card = randint(0, len(self.deck)-1)
+                    hand.append(self.deck[card])
+                    del self.deck[card]
+                hands.append(hand)
         
-        return self.hands
+        return hands
     
     def get_flipped(self):
         if(self.flipped == None and len(self.deck) >= 1):
@@ -81,8 +79,8 @@ class Deck:
     def get_card(self):
         if(len(self.deck) >= 1):
             card = randint(0, len(self.deck)-1)
-            self.extra.append(self.deck[card])
+            extra = self.deck[card]
             del self.deck[card]
 
-            return self.extra[-1]
+            return extra
         return None
