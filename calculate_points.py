@@ -20,17 +20,6 @@ def nibs(flipped):
 #Check points for counting, with cur_card NOT in old_cards, but cur_card IS included in sum
 def check_points(cur_card, old_cards, sum):
     points = 0
-    if(len(old_cards) >= 1):
-        if(cur_card.value == old_cards[-1].value): #Check for pair
-            points += 2
-            if(len(old_cards) >= 2):
-                if(cur_card.value == old_cards[-2].value): #Check for double pair (3 of a kind)
-                    points += 4 #2 + 4 = 6
-                    if(len(old_cards) >= 3):
-                        if(cur_card.value == old_cards[-3].value): #Check for double pair (3 of a kind)
-                            points += 6 #6 + 6 = 12
-    if(sum == 15 or sum == 31): #Check for 15 and 31
-        points += 2 #TODO: test with cur_card = 8, old_cards = ['J', '6', '7'], sum = 31 -> got 3 instead of 5
     if(len(old_cards) >= 2): #Find longest run if enough cards
         complete_run = True
         total_card_index = 2
@@ -54,6 +43,19 @@ def check_points(cur_card, old_cards, sum):
             if(complete_run == True):
                 points = len(cards)
             complete_run = True
+
+    if(len(old_cards) >= 1):
+        if(cur_card.value == old_cards[-1].value): #Check for pair
+            points += 2
+            if(len(old_cards) >= 2):
+                if(cur_card.value == old_cards[-2].value): #Check for double pair (3 of a kind)
+                    points += 4 #2 + 4 = 6
+                    if(len(old_cards) >= 3):
+                        if(cur_card.value == old_cards[-3].value): #Check for double pair (3 of a kind)
+                            points += 6 #6 + 6 = 12
+
+    if(sum == 15 or sum == 31): #Check for 15 and 31
+        points += 2
 
     return points
 
