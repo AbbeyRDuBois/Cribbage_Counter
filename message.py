@@ -148,7 +148,7 @@ async def card_select(author, card_index):
             if(game.throw_away_phase == True):
                 await throw_away_phase_func(author, card_index)
             elif(game.pegging_phase == True):
-                await pegging_phase_func()
+                await pegging_phase_func(author, card_index)
 
     return ''
 
@@ -192,7 +192,7 @@ async def throw_away_phase_func(author, card_index):
                 game.throw_away_phase = False
                 game.pegging_phase = True
 
-                game.backup_hands = game.hands
+                game.backup_hands = copy.deepcopy(game.hands)
 
                 if(num_points == 0):
                     return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\nPegging will now begin with {game.players[game.pegging_index]}.'''
@@ -205,10 +205,10 @@ async def pegging_phase_func(author, card_index):
     #Get player index
     player_index = game.players.index(author)
 
-    #Make sure it's the author's turn and sum <= 31
     card = game.hands[player_index][card_index]
     cur_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list]) + card.to_int_15s()
 
+    #Make sure it's the author's turn and sum <= 31
     if((player_index == game.pegging_index % len(game.players)) and cur_sum <= 31):
         #Remove card from hand, get points, and add to pegging list
         game.hands[player_index].remove(card)
@@ -233,81 +233,99 @@ async def pegging_phase_func(author, card_index):
                 can_play = True
                 break
 
+        #If player still has cards, send them their hand
+        if(len(game.hands[player_index]) > 0):
+                await game.players[player_index].send(game.get_hand_string(player_index))
+
         #If a player who can play was found, let them play. Otherwise, increment to next player and reset.
         if(can_play):
-            if(len(game.hands[player_index]) > 0):
-                await game.players[player_index].send(game.get_hand_string(player_index))
+            #Display data
             if(points > 0):
                 return f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
             else:
-                return f'''{author.name} played {card.display()}, for a total of {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
-        elif(pegging_done):
+                return f'''{author.name} played {card.display()}, bringing the total to {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+        elif(pegging_done): #TODO: This elif is the bane of my existence and I want it GONE. Thanks <3
+            #prepare for next round
             my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
             game.pegging_index += 1
             game.pegging_list = []
 
-            game.hands = copy.copy(game.deck.hands)
+            #Restore the siphoned hands to their former glory
+            game.hands = game.backup_hands
 
-            #Calculate points.
+            #Prepare variable to hold group chat data
+            output_string = ""
+            if(my_sum != 31):
+                game.points[(game.pegging_index-1) % len(game.players)] += 1
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {1 + points} point(s) and last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+            else:
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {2 + points} points and reached 31. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+            output_string += f"Everyone is done pegging.\n"
+
+            #Calculate points
             for player_index in range(len(game.players)):
+                #Add points from hand
                 [get_points, get_output] = cp.calculate_hand(game.hands[player_index], game.deck.get_flipped())
-                print("Starting points")
                 game.points[player_index] += get_points
-                print("sending to dms:")
-                print(get_output)
-                #Send calculation to DMs
-                game.players[player_index].send(get_output)
 
-                print("Above sent to dms")
+                #Send calculation to DMs
+                await game.players[player_index].send("Hand:\n" + get_output)
+
+                #Add data to group output
+                output_string += f"{game.players[player_index].name}'s hand: {[hand_card.display() for hand_card in game.hands[player_index]]} for {get_points} points.\n"
+
                 #Check for winner
                 if(game.get_winner() != None):
                     winner = game.get_winner()
                     game.end_game()
-                    return f'''{winner.name} has won the game! Everything will now be reset.'''
+                    return output_string + f'''{winner.name} has won the game! Everything will now be reset.'''
 
-            print("Ending round")
-            #Reset for next round and send group message with point totals
-            output_string = ""
-            if(my_sum != 31):
-                game.points[(game.pegging_index-1) % len(game.players)] += 1
-                output_string += f"{game.players[(game.pegging_index-1) % len(game.players)].name} got 1 point for last card.\n"
-            else:
-                output_string += f"{game.players[(game.pegging_index-1) % len(game.players)].name} got 31 point for 2 points.\n"
-            print(output_string)
-            output_string += f"Everyone is done pegging.\n"
-            output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in game.crib]}\n"
+            #Calculate crib
             [get_points, get_output] = cp.calculate_crib(game.crib, game.deck.flipped)
             game.points[game.crib_index % len(game.players)] += get_points
-            game.players[player_index].send(get_output)
+            output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in game.crib]} for {get_points} points.\n"
+
+            #Check for winner
+            if(game.get_winner() != None):
+                winner = game.get_winner()
+                game.end_game()
+                return output_string + f'''{winner.name} has won the game! Everything will now be reset.'''
+            
+            #Send calculation to DMs
+            await game.players[player_index].send("Crib:\n" + get_output)
+
+            #Add total points for each person to the group chat variable
+            output_string += "\nTotal Points:\n"
             for player_index in range(len(game.players)):
                 output_string += f"{game.players[player_index].name} has {game.points[player_index]} points.\n"
-            print("output_string:")
-            print(output_string)
-            game.reset_round()
-            print("Round == reset")
 
-            #Get hands
-            game.deck.get_hands(len(game.players), game.card_count + game.throw_count)
-            game.hands = copy.deepcopy(game.deck.hands)
+            #Reset variables for the next round
+            game.reset_round()
+
+            #Get hands for next round
+            game.hands = game.deck.get_hands(len(game.players), game.card_count + game.throw_count)
+            game.backup_hands = copy.deepcopy(game.hands)
 
             #Send hands to DMs
             for player_index in range(len(game.players)):
                 await game.players[player_index].send(game.get_hand_string(player_index))
 
-            output_string += f'''It is {game.players[game.crib_index % len(game.players)]}'s crib.'''
+            #Finalize and send output_string to group chat
+            output_string += f'''\nIt is {game.players[game.crib_index % len(game.players)]}'s crib.'''
+
             return output_string
         else:
-            if(len(game.hands[player_index]) > 0):
-                await game.players[player_index].send(game.get_hand_string(player_index))
+            #Prepare variables for next iteration (up to 31)
             my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
             game.pegging_index += 1
             game.pegging_list = []
 
-            if(my_sum != 31): #TODO: add points on for pairs, 15s, runs in addition to last card/31
+            #Display depending on if they reached 31, and add the point for last card since summing to 31 was already calculated
+            if(my_sum != 31):
                 game.points[(game.pegging_index-1) % len(game.players)] += 1
-                return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got 1 point for last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+                return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {1 + points} point(s) and last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
             else:
-                return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got 31 for 2 points. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+                return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {2 + points} points and reached 31. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
 
 
 def end(author):
