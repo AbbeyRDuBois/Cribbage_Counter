@@ -146,9 +146,9 @@ async def card_select(author, card_index):
 
         if(game.game_started == True):
             if(game.throw_away_phase == True):
-                await throw_away_phase_func(author, card_index)
+                return await throw_away_phase_func(author, card_index)
             elif(game.pegging_phase == True):
-                await pegging_phase_func(author, card_index)
+                return await pegging_phase_func(author, card_index)
 
     return ''
 
