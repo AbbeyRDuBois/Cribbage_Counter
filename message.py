@@ -258,9 +258,9 @@ async def pegging_phase_func(author, card_index):
             output_string = ""
             if(my_sum != 31):
                 game.points[(game.pegging_index-1) % len(game.players)] += 1
-                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {1 + points} point(s) and last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.\n'''
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) and last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.\n'''
             else:
-                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {points} points and reached 31. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.\n'''
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.\n'''
             output_string += f"Everyone is done pegging.\nFlipped card: {game.deck.flipped.display()}\n"
 
             #Calculate points
