@@ -110,7 +110,7 @@ def mega(author):
         game.point_goal = 241
         game.skunk_line = 180
         game.hand_size = 8
-        return f"{author.name} has changed game mode to standard. Use !standard to play regular cribbage and !start to begin."
+        return f"{author.name} has changed game mode to mega. Use !standard to play regular cribbage and !start to begin."
     
 async def start(author):
     if(game.game_started == False):
@@ -125,7 +125,7 @@ async def start(author):
             game.create_game(len(game.players))
             
             #Get hands
-            game.hands = game.deck.get_hands(len(game.players), game.card_count + game.throw_count)
+            game.hands = game.deck.get_hands(len(game.players), game.hand_size + game.throw_count)
 
             #Send hands to DMs
             for player_index in range(len(game.players)):
@@ -272,31 +272,26 @@ async def pegging_phase_func(author, card_index):
                 #Send calculation to DMs
                 await game.players[player_index].send("Hand:\n" + get_output)
 
-                print("After dms")
                 #Add data to group output
                 output_string += f"{game.players[player_index].name}'s hand: {[hand_card.display() for hand_card in game.hands[player_index]]} for {get_points} points.\n"
 
-                print("Check winner")
                 #Check for winner
                 if(game.get_winner() != None):
                     winner = game.get_winner()
                     game.end_game()
                     return output_string + f'''{winner.name} has won the game! Everything will now be reset.'''
 
-            print("Calc crub")
             #Calculate crib
             [get_points, get_output] = cp.calculate_crib(game.crib, game.deck.flipped)
             game.points[game.crib_index % len(game.players)] += get_points
             output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in game.crib]} for {get_points} points.\n"
 
-            print("check winner (again)")
             #Check for winner
             if(game.get_winner() != None):
                 winner = game.get_winner()
                 game.end_game()
                 return output_string + f'''{winner.name} has won the game! Everything will now be reset.'''
             
-            print("crib dm")
             #Send calculation to DMs
             await game.players[game.crib_index % len(game.players)].send("Crib:\n" + get_output)
 
@@ -309,7 +304,7 @@ async def pegging_phase_func(author, card_index):
             game.reset_round()
 
             #Get hands for next round
-            game.hands = game.deck.get_hands(len(game.players), game.card_count + game.throw_count)
+            game.hands = game.deck.get_hands(len(game.players), game.hand_size + game.throw_count)
             game.backup_hands = copy.deepcopy(game.hands)
 
             #Send hands to DMs

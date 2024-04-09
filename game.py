@@ -18,7 +18,7 @@ pegging_list = [] #List of cards in pegging round
 point_goal = 121 #Number of points to win
 skunk_line = 90 #Number of points to skunk line
 card_count = 4 #Number of cards in crib
-hand_size = 0 #Number of cards in a hand after throwing to crib
+hand_size = 4 #Number of cards in a hand after throwing to crib
 crib_index = 0 #Crib belongs to players%len(players)
 pegging_index = 0 #(crib_index + 1) % len(players)
 throw_count = 0 #How many cards each player throws, initialized upon starting game
@@ -120,7 +120,7 @@ def end_game():
     point_goal = 121
     skunk_line = 90
     card_count = 4
-    hand_size = 0
+    hand_size = 4
     crib_index = 0
     pegging_index = 0
     throw_count = 0
@@ -133,7 +133,8 @@ def end_game():
 def get_hand_string(player_index):
     global hands
 
-    output_string = f'''Hand:\n'''
+    output_string = f'''Sorted Hand: {[card.display() for card in hands[player_index]]}\n'''
+    output_string += f'''Hand:\n'''
     for card in hands[player_index]:
         output_string += f"{card.display()},  "
     output_string = output_string[:-3] + "\n"
@@ -146,7 +147,6 @@ def get_hand_string(player_index):
 def create_game(num_players):
     global throw_count
     global num_for_good_luck
-    global hand_size
     global points
     global end
     global num_thrown
@@ -154,19 +154,15 @@ def create_game(num_players):
     if(num_players == 1):
         throw_count = 2
         num_for_good_luck = 2
-        hand_size = 6
     elif(num_players == 2):
         throw_count = 2
         num_for_good_luck = 0
-        hand_size = 6
     elif(num_players == 3):
         throw_count = 1
         num_for_good_luck = 1
-        hand_size = 5
     elif(num_players == 4):
         throw_count = 1
         num_for_good_luck = 0
-        hand_size = 5
     else:
         return
     
