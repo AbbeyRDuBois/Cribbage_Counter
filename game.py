@@ -64,6 +64,7 @@ def get_winner():
         
 #Resets the round by changing variables
 def reset_round():
+    global deck
     global pegging_phase
     global throw_away_phase
     global pegging_list
@@ -72,6 +73,7 @@ def reset_round():
     global hands
     global crib
 
+    deck.reset_deck()
     pegging_phase = False
     throw_away_phase = True
     pegging_list = []
@@ -80,7 +82,7 @@ def reset_round():
     hands = []
     crib = []
 
-    for ii in range(num_thrown):
+    for ii in range(len(num_thrown)):
         num_thrown[ii] = 0
         
 #Ends the game by resetting every variable
