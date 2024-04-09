@@ -58,11 +58,11 @@ async def handle_user_messages(msg):
     elif(message == '!unjoin'):
         return unjoin(msg.author)
     elif(message == '!unjoinall'):
-        return unjoinall()
+        return unjoinall(msg.author)
     elif(message == '!standard'):
-        return standard()
+        return standard(msg.author)
     elif(message == '!mega'):
-        return mega()
+        return mega(msg.author)
     elif(message == '!start'):
         return await start(msg.author)
     elif(re.search('![0-9]+', message) != None):
@@ -197,7 +197,7 @@ async def throw_away_phase_func(author, card_index):
                 if(num_points == 0):
                     return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\nPegging will now begin with {game.players[game.pegging_index]}.'''
                 else:
-                    return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\n{game.players[game.crib_index]} gets nibs for 2.\nPegging will now begin with {game.players[game.pegging_index]}.'''
+                    return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\n{game.players[game.crib_index % len(game.players)]} gets nibs for 2.\nPegging will now begin with {game.players[game.pegging_index]}.'''
         else:
             return ''
                     
@@ -272,28 +272,33 @@ async def pegging_phase_func(author, card_index):
                 #Send calculation to DMs
                 await game.players[player_index].send("Hand:\n" + get_output)
 
+                print("After dms")
                 #Add data to group output
                 output_string += f"{game.players[player_index].name}'s hand: {[hand_card.display() for hand_card in game.hands[player_index]]} for {get_points} points.\n"
 
+                print("Check winner")
                 #Check for winner
                 if(game.get_winner() != None):
                     winner = game.get_winner()
                     game.end_game()
                     return output_string + f'''{winner.name} has won the game! Everything will now be reset.'''
 
+            print("Calc crub")
             #Calculate crib
             [get_points, get_output] = cp.calculate_crib(game.crib, game.deck.flipped)
             game.points[game.crib_index % len(game.players)] += get_points
             output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in game.crib]} for {get_points} points.\n"
 
+            print("check winner (again)")
             #Check for winner
             if(game.get_winner() != None):
                 winner = game.get_winner()
                 game.end_game()
                 return output_string + f'''{winner.name} has won the game! Everything will now be reset.'''
             
+            print("crib dm")
             #Send calculation to DMs
-            await game.players[game.crib_index].send("Crib:\n" + get_output)
+            await game.players[game.crib_index % len(game.players)].send("Crib:\n" + get_output)
 
             #Add total points for each person to the group chat variable
             output_string += "\nTotal Points:\n"
