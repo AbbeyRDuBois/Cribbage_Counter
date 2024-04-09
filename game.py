@@ -16,7 +16,7 @@ end = [] #List of players who wish to prematurely end the game
 num_thrown = [] #Number of cards thrown in crib, indexed same as players
 pegging_list = [] #List of cards in pegging round
 point_goal = 121 #Number of points to win
-skunk_line = 90 #Number of points to skunk line
+skunk_line = 30 #Number of points from skunk line to end -1
 card_count = 4 #Number of cards in crib
 hand_size = 4 #Number of cards in a hand after throwing to crib
 crib_index = 0 #Crib belongs to players%len(players)
@@ -56,7 +56,7 @@ def can_peg(hand, cur_sum):
 def get_winner():
     global players
     global point_goal
-    
+
     for player_index in range(len(players)):
         if(points[player_index] >= point_goal):
             return players[player_index]
@@ -173,3 +173,18 @@ def create_game(num_players):
         points.append(0)
         end.append(False)
         num_thrown.append(0)
+
+def get_winner_string(winner):
+    global players
+    global points
+    global point_goal
+    global skunk_line
+
+    player_scores = ""
+    for point_index in range(len(points)):
+        if(points[point_index] < (point_goal - skunk_line - 1)):
+            player_scores += f"{players[point_index]} got skunked x{points[point_index] // (point_goal - skunk_line - 1)} at {points[point_index]} points.\n"
+        else:
+            player_scores += f"{players[point_index]} ended with {points[point_index]} points.\n"
+            end_game()
+    return player_scores + f"{winner.name} has won the game! Everything will now be reset."

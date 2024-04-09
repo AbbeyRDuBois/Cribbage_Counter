@@ -184,10 +184,9 @@ async def throw_away_phase_func(author, card_index):
                 num_points = cp.nibs(flipped)
                 game.points[game.crib_index % len(game.players)] += num_points
 
+                #Check for winner
                 if(game.get_winner() != None):
-                    winner = game.get_winner()
-                    game.end_game()
-                    return f'''{winner.name} has won the game from nibs ({flipped.display})! Everything will now be reset.'''
+                    return game.get_winner_string(game.get_winner())
                 
                 game.throw_away_phase = False
                 game.pegging_phase = True
@@ -195,13 +194,13 @@ async def throw_away_phase_func(author, card_index):
                 game.backup_hands = copy.deepcopy(game.hands)
 
                 if(num_points == 0):
-                    return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\nPegging will now begin with {game.players[game.pegging_index]}.'''
+                    return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\nPegging will now begin with **{game.players[game.pegging_index]}**.'''
                 else:
-                    return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\n{game.players[game.crib_index % len(game.players)]} gets nibs for 2.\nPegging will now begin with {game.players[game.pegging_index]}.'''
+                    return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\n{game.players[game.crib_index % len(game.players)]} gets nibs for 2.\nPegging will now begin with **{game.players[game.pegging_index]}**.'''
         else:
             return ''
     return ''
-                    
+
 async def pegging_phase_func(author, card_index):
     #Get player index
     player_index = game.players.index(author)
@@ -222,9 +221,7 @@ async def pegging_phase_func(author, card_index):
 
         #If pegged out, end game
         if(game.get_winner() != None):
-            winner = game.get_winner()
-            game.end_game()
-            return f'''{winner.name} has won the game! Everything will now be reset.'''
+            return game.get_winner_string(game.get_winner())
 
         #Make sure next person can play. If go, then reset.
         can_play = False
@@ -268,9 +265,7 @@ async def pegging_phase_func(author, card_index):
 
                 #If pegged out, end game
                 if(game.get_winner() != None):
-                    winner = game.get_winner()
-                    game.end_game()
-                    return f'''{winner.name} has won the game! Everything will now be reset.'''
+                    return game.get_winner_string(game.get_winner())
 
                 output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card.\n'''
             else:
@@ -291,9 +286,7 @@ async def pegging_phase_func(author, card_index):
 
                 #Check for winner
                 if(game.get_winner() != None):
-                    winner = game.get_winner()
-                    game.end_game()
-                    return output_string + f'''{winner.name} has won the game! Everything will now be reset.'''
+                    return game.get_winner_string(game.get_winner())
 
             #Calculate crib
             [get_points, get_output] = cp.calculate_crib(game.crib, game.deck.flipped)
@@ -302,9 +295,7 @@ async def pegging_phase_func(author, card_index):
 
             #Check for winner
             if(game.get_winner() != None):
-                winner = game.get_winner()
-                game.end_game()
-                return output_string + f'''{winner.name} has won the game! Everything will now be reset.'''
+                return game.get_winner_string(game.get_winner())
             
             #Send calculation to DMs
             await game.players[game.crib_index % len(game.players)].send("Crib:\n" + get_output)
@@ -341,9 +332,7 @@ async def pegging_phase_func(author, card_index):
 
                 #If pegged out, end game
                 if(game.get_winner() != None):
-                    winner = game.get_winner()
-                    game.end_game()
-                    return f'''{winner.name} has won the game! Everything will now be reset.'''
+                    return game.get_winner_string(game.get_winner())
         
                 return no_hand + f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
             else:
