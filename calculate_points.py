@@ -34,7 +34,7 @@ def check_points(cur_card, old_cards, sum):
     if(len(old_cards) >= 2): #Find longest run if enough cards
         complete_run = True
         total_card_index = 2
-        while(total_card_index <= len(old_cards)):
+        while(total_card_index <= len(old_cards)): #TODO: Might take run that doesn't exist with just newest cards
             #Populate card list for runs, starting with 3 and incrementing until run is broken or there are no more cards
             cards = [cur_card.to_int_runs()]
             for card_index in range(1, total_card_index+1):

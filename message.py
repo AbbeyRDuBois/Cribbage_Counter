@@ -215,6 +215,7 @@ async def pegging_phase_func(author, card_index):
         points = cp.check_points(card, game.pegging_list, cur_sum)
         game.points[player_index] += points
         game.pegging_list.append(card)
+        print(points)
 
         #If pegged out, end game
         if(game.get_winner() != None):
@@ -244,7 +245,7 @@ async def pegging_phase_func(author, card_index):
                 return f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
             else:
                 return f'''{author.name} played {card.display()}, bringing the total to {cur_sum}. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
-        elif(pegging_done): #TODO: This elif is the bane of my existence and I want it GONE. Thanks <3
+        elif(pegging_done):
             #prepare for next round
             my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
             game.pegging_index += 1
@@ -257,10 +258,10 @@ async def pegging_phase_func(author, card_index):
             output_string = ""
             if(my_sum != 31):
                 game.points[(game.pegging_index-1) % len(game.players)] += 1
-                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {1 + points} point(s) and last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {1 + points} point(s) and last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.\n'''
             else:
-                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {2 + points} points and reached 31. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
-            output_string += f"Everyone is done pegging.\n"
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {points} points and reached 31. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.\n'''
+            output_string += f"Everyone is done pegging.\nFlipped card: {game.deck.flipped.display()}\n"
 
             #Calculate points
             for player_index in range(len(game.players)):
@@ -292,7 +293,7 @@ async def pegging_phase_func(author, card_index):
                 return output_string + f'''{winner.name} has won the game! Everything will now be reset.'''
             
             #Send calculation to DMs
-            await game.players[player_index].send("Crib:\n" + get_output)
+            await game.players[game.crib_index].send("Crib:\n" + get_output)
 
             #Add total points for each person to the group chat variable
             output_string += "\nTotal Points:\n"
@@ -323,9 +324,9 @@ async def pegging_phase_func(author, card_index):
             #Display depending on if they reached 31, and add the point for last card since summing to 31 was already calculated
             if(my_sum != 31):
                 game.points[(game.pegging_index-1) % len(game.players)] += 1
-                return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {1 + points} point(s) and last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+                return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) and last card. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
             else:
-                return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} got {2 + points} points and reached 31. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
+                return f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31. It is now {game.players[game.pegging_index % len(game.players)].name}'s turn to play.'''
 
 
 def end(author):
