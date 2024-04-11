@@ -59,8 +59,8 @@ def get_winner():
     for player_index in range(len(players)):
         if(points[player_index] >= point_goal):
             return players[player_index]
-        else:
-            return None
+
+    return None
         
 #Resets the round by changing variables
 def reset_round():
@@ -135,11 +135,11 @@ def get_hand_string(player_index):
 
     output_string = f"Hand:\n"
     for card in [card.display() for card in sorted(hands[player_index], key=lambda x: x.to_int_runs())]:
-        output_string += f"{card},  "
-    output_string = output_string[:-3] + "\n"
+        output_string += f"{card}, "
+    output_string = output_string[:-2] + "\n"
     for card in [card for card in sorted(hands[player_index], key=lambda x: x.to_int_runs())]:
-        output_string += f"!{hands[player_index].index(card)},      "
-    output_string = output_string[:-7] + "\n"
+        output_string += f"!{hands[player_index].index(card)},\t\t"
+    output_string = output_string[:-3] + "\n"
     return output_string
 
 #Sets up game to work with num_players amount of people
@@ -192,5 +192,5 @@ def mega_hand():
 
     if(game_started == False):
         point_goal = 241
-        skunk_length = 180
+        skunk_length = 60
         hand_size = 8
