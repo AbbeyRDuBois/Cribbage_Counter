@@ -5,9 +5,11 @@ Run "Cribbage Counter.exe" for the program.
 # Cribbage Game
 Create a new file named "credentials.json" and copy the following code into it:
 
+```json
 {
     "token": ""
 }
+```
 
 Copy your bot's token into the empty quotes and then run "main.py" to initiate the bot.
 Bots must be invited to a Discord server in order to be used.
