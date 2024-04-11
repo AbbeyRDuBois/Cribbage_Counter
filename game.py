@@ -59,8 +59,8 @@ def get_winner():
     for player_index in range(len(players)):
         if(points[player_index] >= point_goal):
             return players[player_index]
-        else:
-            return None
+
+    return None
         
 #Resets the round by changing variables
 def reset_round():
