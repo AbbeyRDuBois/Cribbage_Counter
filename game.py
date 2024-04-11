@@ -192,5 +192,5 @@ def mega_hand():
 
     if(game_started == False):
         point_goal = 241
-        skunk_length = 180
+        skunk_length = 60
         hand_size = 8
