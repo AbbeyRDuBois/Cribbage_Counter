@@ -1,6 +1,7 @@
 #Foreign imports
 import re
 import copy
+import discord
 
 #Local imports
 import game
@@ -11,7 +12,7 @@ def help_message():
     return '''The bot knows the following commands:
 
     Cribbage:
-     - Start Game:
+      Start Game:
         '**!join**': Let the bot know that you'd like to play cribbage.
         '**!unjoin**': Let the bot know that you changed your mind and don't want to play.
         '**!unjoinall**': Remove all players from lobby. Only use if someone forgot to !unjoin.
@@ -19,13 +20,13 @@ def help_message():
         '**!mega**': Play a game of mega hand (8 cards, twice as many points).
         '**!start**': Starts a game with up to 4 players who have done !join.
 
-     - Throw Into Crib:
+      Throw Into Crib:
         '**![0-9]+**': Puts the card with the given index into the current crib.
 
-     - Counting:
+      Counting:
         '**![0-9]+**': Plays the card with the given index.
 
-     - End Early:
+      End Early:
         '**!end**': All players must type in the command to end the game early.
 
     Other:
@@ -52,7 +53,7 @@ async def handle_user_messages(msg):
     if(message == '!help' or message == '!bot'):
         return help_message()
     
-    #Links to other media
+    #Cribbage commands
     elif(message == '!join'):
         return join(msg.author)
     elif(message == '!unjoin'):
@@ -69,6 +70,12 @@ async def handle_user_messages(msg):
         return await card_select(msg.author, int(message[1:]))
     elif(message == '!end'):
         return end(msg.author)
+    
+    #Roles
+    elif(message == '!gm' or message == '!garbageman'):
+        return await give_role(msg.author, "Garbage Man")
+    elif(message == '!tl' or message == '!treasurelady'):
+        return await give_role(msg.author, "Treasure Lady")
     
     #Default case (orders bot doesn't understand)
     return ''
@@ -135,7 +142,10 @@ async def start(author):
         
 async def card_select(author, card_index):
     #Get player index
-    player_index = game.players.index(author)
+    try:
+        player_index = game.players.index(author)
+    except:
+        return ''
 
     if(author in game.players):
         #Check for valid index or return
@@ -152,7 +162,10 @@ async def card_select(author, card_index):
 
 async def throw_away_phase_func(author, card_index):
     #Get player index
-    player_index = game.players.index(author)
+    try:
+        player_index = game.players.index(author)
+    except:
+        return ''
 
     #Make sure player isn't throwing extra away
     if(game.num_thrown[player_index] < game.throw_count):
@@ -205,16 +218,20 @@ async def throw_away_phase_func(author, card_index):
 
 async def pegging_phase_func(author, card_index):
     #Get player index
-    player_index = game.players.index(author)
+    try:
+        player_index = game.players.index(author)
+    except:
+        return ''
 
+    #Make sure it's author's turn
     if(game.players[game.pegging_index % len(game.players)] != game.players[player_index]):
         return ''
 
     card = game.hands[player_index][card_index]
     cur_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list]) + card.to_int_15s()
 
-    #Make sure it's the author's turn and sum <= 31
-    if((player_index == game.pegging_index % len(game.players)) and cur_sum <= 31):
+    #Make sure sum <= 31
+    if(cur_sum <= 31):
         #Remove card from hand, get points, and add to pegging list
         game.hands[player_index].remove(card)
         points = cp.check_points(card, game.pegging_list, cur_sum)
@@ -277,14 +294,14 @@ async def pegging_phase_func(author, card_index):
             #Calculate points
             for player_index in range(len(game.players)):
                 #Add points from hand
-                [get_points, get_output] = cp.calculate_hand(game.hands[player_index], game.deck.get_flipped())
-                game.points[player_index] += get_points
+                [get_points, get_output] = cp.calculate_hand(game.hands[(player_index + game.crib_index + 1) % len(game.players)], game.deck.get_flipped())
+                game.points[(player_index + game.crib_index + 1) % len(game.players)] += get_points
 
                 #Send calculation to DMs
-                await game.players[player_index].send("Hand:\n" + get_output)
+                await game.players[(player_index + game.crib_index + 1) % len(game.players)].send("Hand:\n" + get_output)
 
                 #Add data to group output
-                output_string += f"{game.players[player_index].name}'s hand: {[hand_card.display() for hand_card in sorted(game.hands[player_index], key=lambda x: x.to_int_runs())]} for {get_points} points.\n"
+                output_string += f"{game.players[(player_index + game.crib_index + 1) % len(game.players)].name}'s hand: {[hand_card.display() for hand_card in sorted(game.hands[(player_index + game.crib_index + 1) % len(game.players)], key=lambda x: x.to_int_runs())]} for {get_points} points.\n"
 
                 #Check for winner
                 if(game.get_winner() != None):
@@ -325,26 +342,39 @@ async def pegging_phase_func(author, card_index):
         else:
             #Prepare variables for next iteration (up to 31)
             my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
-            game.pegging_index += 1
             game.pegging_list = []
+            cur_pegging_index = game.pegging_index
+            game.pegging_index += 1
+
+            #Make sure next person has a hand. If not, then increment. (Somebody has a hand if we got here)
+            can_play = False
+            for ii in range(len(game.players)):
+                if(len(game.hands[game.pegging_index % len(game.players)]) > 0):
+                    break
+                else:
+                    game.pegging_index += 1
 
             #Display depending on if they reached 31, and add the point for last card since summing to 31 was already calculated
             if(my_sum != 31):
-                game.points[(game.pegging_index-1) % len(game.players)] += 1
+                game.points[cur_pegging_index % len(game.players)] += 1
 
                 #If pegged out, end game
                 if(game.get_winner() != None):
                     return game.get_winner_string(game.get_winner())
         
-                return no_hand + f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
+                return no_hand + f'''{game.players[cur_pegging_index % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
             else:
-                return no_hand + f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
+                return no_hand + f'''{game.players[cur_pegging_index % len(game.players)].name} played {card.display()}, got {points} points and reached 31.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
 
+    return ''
 
 def end(author):
     if(author in game.players):
         #Get player index
-        player_index = game.players.index(author)
+        try:
+            player_index = game.players.index(author)
+        except:
+            return ''
 
         if(game.game_started == True):
             game.end[player_index] = True
@@ -368,3 +398,10 @@ def end(author):
                 return f"{author.name} wants to end the game early. Type !end to agree."
         else:
             return f"You can't end a game that hasn't started yet, {author.name}. Use !unjoin to leave queue."
+        
+    return ''
+
+#Give role to user
+async def give_role(member, role):
+    await member.edit(roles=[discord.utils.get(member.guild.roles, name=role)])
+    return member.name + ' is now ' + role + '!'

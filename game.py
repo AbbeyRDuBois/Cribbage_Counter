@@ -135,11 +135,11 @@ def get_hand_string(player_index):
 
     output_string = f"Hand:\n"
     for card in [card.display() for card in sorted(hands[player_index], key=lambda x: x.to_int_runs())]:
-        output_string += f"{card},  "
-    output_string = output_string[:-3] + "\n"
+        output_string += f"{card}, "
+    output_string = output_string[:-2] + "\n"
     for card in [card for card in sorted(hands[player_index], key=lambda x: x.to_int_runs())]:
-        output_string += f"!{hands[player_index].index(card)},      "
-    output_string = output_string[:-7] + "\n"
+        output_string += f"!{hands[player_index].index(card)},\t\t"
+    output_string = output_string[:-3] + "\n"
     return output_string
 
 #Sets up game to work with num_players amount of people
