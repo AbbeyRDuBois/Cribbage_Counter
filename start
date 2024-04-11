@@ -10,4 +10,4 @@ if [ -z $PYTHON ]; then
 fi
 
 # Start main.py.
-$PYTHON main.py
+$PYTHON src/main.py

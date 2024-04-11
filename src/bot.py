@@ -7,18 +7,20 @@ import credentials
 import format
 
 def run_bot():
-    #Get token from credentials.json file
-    discord_token = credentials.load_from_file("credentials.json")
+    # Get token from credentials.json file
+    discord_token = credentials.load_from_file('credentials.json')
 
-    #If the token is None, exit.
+    # If the token is None, exit.
     if discord_token == None:
         exit(1)
 
+    # Create a discord client
     intents = discord.Intents.default()
     intents.message_content = True
 
     client = discord.Client(intents=intents)
     
+    # Add event handlers
     @client.event
     async def on_ready():
         print(client.user.name + ' is running.')
@@ -30,6 +32,7 @@ def run_bot():
         
         await message.process_message(msg)
 
+    # Try to run the bot
     try:
         client.run(discord_token)
     except Exception as e:
