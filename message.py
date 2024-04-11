@@ -30,6 +30,8 @@ def help_message():
         '**!end**': All players must type in the command to end the game early.
 
     Other:
+    '**!treasurelady**', '**!tl**': Change role to Treasure Lady.
+    '**!garbageman**', '**!gm**': Change role to Garbage Man.
     '**!help**', '**!bot**': Display orders that the bot can execute.'''
 
 
@@ -408,4 +410,4 @@ def end(author):
 #Give role to user
 async def give_role(member, role):
     await member.edit(roles=[discord.utils.get(member.guild.roles, name=role)])
-    return member.name + ' is now ' + role + '!'
+    return member.name + ' is now a ' + role + '!'
