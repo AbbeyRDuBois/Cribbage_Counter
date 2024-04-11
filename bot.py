@@ -8,7 +8,17 @@ import message
 
 def run_bot():
     #Get token from credentials.json file
-    discord_token = json.load(open('credentials.json', 'r'))["token"]
+
+    # Try to open the credentials file, if it doesn't exist, create it.
+    try:
+        credentials_file = open('credentials.json', 'r')
+    except FileNotFoundError:
+        print("credentials.json not found. Creating file...")
+        credentials_file = open('credentials.json', 'w')
+        credentials_file.write('{\n\t"token": "YOUR_TOKEN' + '\n}')
+        return
+
+    discord_token = json.load(credentials_file)["token"]
 
     intents = discord.Intents.default()
     intents.message_content = True
