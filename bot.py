@@ -1,24 +1,13 @@
 #Foreign imports
 import discord
-import json
 
 #Local imports
 import message
-
+import credentials
 
 def run_bot():
     #Get token from credentials.json file
-
-    # Try to open the credentials file, if it doesn't exist, create it.
-    try:
-        credentials_file = open('credentials.json', 'r')
-    except FileNotFoundError:
-        print("credentials.json not found. Creating file...")
-        credentials_file = open('credentials.json', 'w')
-        credentials_file.write('{\n\t"token": "YOUR_TOKEN' + '\n}')
-        return
-
-    discord_token = json.load(credentials_file)["token"]
+    discord_token = credentials.load_from_file("credentials.json")
 
     intents = discord.Intents.default()
     intents.message_content = True
@@ -36,4 +25,7 @@ def run_bot():
         
         await message.process_message(msg)
 
-    client.run(discord_token)
+    try:
+        client.run(discord_token)
+    except Exception as e:
+        print("ERROR: " + str(e))
