@@ -23,6 +23,7 @@ Launch the bot using the start script:
 ```
 
 When opening the program for the first time you will be asked if you want to create the credentials.json file.
+The file will be created in the current working directory so be sure you are in the root project folder when you run this.
 
 Enter `y` and the file will be created.
 
