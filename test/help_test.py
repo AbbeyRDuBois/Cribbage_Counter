@@ -18,7 +18,7 @@ import helper
 token = credentials.load_from_file('test-credentials.json')
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='/', intents=intents)
 bot.remove_command('help')
 
 __test__ = False
