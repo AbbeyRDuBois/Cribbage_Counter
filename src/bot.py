@@ -1,3 +1,12 @@
+###########################################################
+# File: bot.py
+#
+# Authors: Andrew Rice, Bryce Schultz
+# Date: 4/7/2024
+#
+# Description: This file contains the main bot loop.
+###########################################################
+
 #Foreign imports
 import discord
 

@@ -1,3 +1,4 @@
 discord
 PyQt6
 colorama
+pytest

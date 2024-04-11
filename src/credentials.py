@@ -30,7 +30,7 @@ def load_from_file(file: str) -> str:
     except FileNotFoundError:
         # Ask the user if they want to create the file.
         should_create_file = input(
-            format.warning('credentials.json not found. Would you like to create it? (y/n): '))
+            format.warning(f'{file} not found. Would you like to create it? (y/n): '))
 
         # If the user doesn't want to create the file, exit.
         if should_create_file != 'y':
@@ -55,10 +55,10 @@ def load_from_file(file: str) -> str:
         # Load the token from the file.
         discord_token = json.load(credentials_file)['token']
     except json.JSONDecodeError:
-        print(format.error('credentials.json is not formatted correctly.'))
+        print(format.error(f'{file} is not formatted correctly.'))
         return None
     except KeyError:
-        print(format.error('credentials.json is missing the token field.'))
+        print(format.error(f'{file} is missing the token field.'))
         return None
     except Exception as e:
         print(format.error(str(e)))
