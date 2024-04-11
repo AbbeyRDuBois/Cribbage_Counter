@@ -1,6 +1,7 @@
 #Foreign imports
 import discord
 import json
+import os
 
 #Local imports
 import message
@@ -8,7 +9,8 @@ import message
 
 def run_bot():
     #Get token from credentials.json file
-    discord_token = json.load(open('credentials.json', 'r'))["token"]
+    file_path = os.path.join(os.path.dirname(__file__), './credentials.json')
+    discord_token = json.load(open(file_path, 'r'))["token"]
 
     intents = discord.Intents.default()
     intents.message_content = True
