@@ -182,7 +182,7 @@ async def throw_away_phase_func(author, card_index):
         game.num_thrown[player_index] += 1
 
         #Send confirmation to DMs
-        await author.send(f"Sent {card.display()} to {game.players[game.crib_index % len(game.players)]}. Choose {game.throw_count - game.num_thrown[player_index]} more.\n{game.get_hand_string(player_index)}")
+        await author.send(f"Sent {card.display()} to {game.players[game.crib_index % len(game.players)]}'s crib. Choose {game.throw_count - game.num_thrown[player_index]} more.\n{game.get_hand_string(player_index)}")
 
         if(game.num_thrown[player_index] == game.throw_count):
             all_done = True
