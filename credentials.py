@@ -1,5 +1,6 @@
 # Foreign imports
 import json
+import format
 
 # Loads the discord token from the credentials file safely.
 def load_from_file(file: str) -> str:
@@ -8,16 +9,15 @@ def load_from_file(file: str) -> str:
         credentials_file = open(file, 'r')
     except FileNotFoundError:
         # Ask the user if they want to create the file.
-        create = input("credentials.json not found. Would you like to create it? (y/N)")
+        create = input(format.warning("credentials.json not found. Would you like to create it? (y/n): "))
 
         # If the user doesn't want to create the file, exit.
         if create != "y":
             exit(0)
         
-        # Get the token from the user.
+        # Get the token from the user and write it to the file.
         token = input("Token: ")
 
-        # Write the token to the file.
         credentials_file = open(file, 'w')
         credentials_file.write('{ "token": "' + token + '" }')
         credentials_file.close()
@@ -25,17 +25,19 @@ def load_from_file(file: str) -> str:
         # Reopen the file for reading.
         credentials_file = open(file, 'r')
     except Exception as e:
-        print("ERROR: " + str(e))
-        return
+        print(format.error(str(e)))
+        exit(1)
     
     try:
+        # Load the token from the file.
         discord_token = json.load(credentials_file)["token"]
     except json.JSONDecodeError:
-        print("ERROR: credentials.json is not formatted correctly.")
+        print(format.error("credentials.json is not formatted correctly."))
         exit(1)
     except KeyError:
-        print("ERROR: credentials.json is missing the token field.")
+        print(format.error("credentials.json is missing the token field."))
         exit(1)
     
+    # Close the file and return the token.
     credentials_file.close()
     return discord_token

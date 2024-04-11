@@ -4,6 +4,7 @@ import discord
 #Local imports
 import message
 import credentials
+import format
 
 def run_bot():
     #Get token from credentials.json file
@@ -28,4 +29,5 @@ def run_bot():
     try:
         client.run(discord_token)
     except Exception as e:
-        print("ERROR: " + str(e))
+        print(format.error(str(e)))
+        exit(1)
