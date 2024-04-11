@@ -5,7 +5,7 @@ PIP=$(which pip3)
 
 # Check if pip is installed.
 if [ -z $PIP ]; then
-    echo "pip3 is not installed. Please install pip3."
+    echo "Please install pip to use the bot."
     exit 1
 fi
 

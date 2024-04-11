@@ -13,11 +13,12 @@ def load_from_file(file: str) -> str:
 
         # If the user doesn't want to create the file, exit.
         if create != "y":
-            exit(0)
+            return None
         
-        # Get the token from the user and write it to the file.
-        token = input("Token: ")
+        # Get the token from the user.
+        token = input("Enter bot token: ")
 
+        # Open the file and write the token.
         credentials_file = open(file, 'w')
         credentials_file.write('{ "token": "' + token + '" }')
         credentials_file.close()
@@ -26,17 +27,17 @@ def load_from_file(file: str) -> str:
         credentials_file = open(file, 'r')
     except Exception as e:
         print(format.error(str(e)))
-        exit(1)
+        return None
     
     try:
         # Load the token from the file.
         discord_token = json.load(credentials_file)["token"]
     except json.JSONDecodeError:
         print(format.error("credentials.json is not formatted correctly."))
-        exit(1)
+        return None
     except KeyError:
         print(format.error("credentials.json is missing the token field."))
-        exit(1)
+        return None
     
     # Close the file and return the token.
     credentials_file.close()

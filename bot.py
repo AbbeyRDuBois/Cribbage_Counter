@@ -10,6 +10,10 @@ def run_bot():
     #Get token from credentials.json file
     discord_token = credentials.load_from_file("credentials.json")
 
+    #If the token is None, exit.
+    if discord_token == None:
+        exit(1)
+
     intents = discord.Intents.default()
     intents.message_content = True
 
