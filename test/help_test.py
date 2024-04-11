@@ -29,7 +29,7 @@ async def test_ping(ctx):
     await channel.send('!help')
 
     def check(m):
-        return m.content == correct_response and m.author.id == helper.bot_to_test_id
+        return m.author.id == helper.bot_to_test_id
 
     response = await bot.wait_for('message', check=check)
     assert (response.content == correct_response)
