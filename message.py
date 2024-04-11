@@ -91,6 +91,7 @@ def join(author):
                 return f"Sorry, {author.name}. This game already has 4 players {[player.name for player in game.players]}. If this is wrong, type !unjoinall."
         else:
             return f"You've already queued for this game, {author.name}. Type !start to begin game with {len(game.players)} players."
+    return ''
     
 def unjoin(author):
     if(game.game_started == False):
@@ -100,12 +101,14 @@ def unjoin(author):
             return f"So long, {author.name}."
         else:
             return f"You never queued for this game, {author.name}."
+    return ''
         
 def unjoinall(author):
     if(game.game_started == False):
         #Remove person from player list and send confirmation message
         game.players = []
         return f"{author.name} has purged the player list."
+    return ''
     
 def standard(author):
     if(game.game_started == False):
@@ -139,6 +142,7 @@ async def start(author):
             return f'''{author.name} has started the game. It is {game.players[game.crib_index % len(game.players)]}'s crib.'''
         else:
             return f"You can't start a game you aren't queued for, {author.name}."
+    return ''
         
 async def card_select(author, card_index):
     #Get player index
