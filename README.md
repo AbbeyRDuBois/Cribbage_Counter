@@ -2,7 +2,7 @@
 Counts the points in your cribbage hand regardless of how many cards are in the hand.
 Run "Cribbage Counter.exe" for the program.
 
-# Cribbage Game
+# Cribbage Game (Discord Bot)
 
 ### Requirements:
 * python 3
