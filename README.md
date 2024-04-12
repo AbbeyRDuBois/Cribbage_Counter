@@ -84,4 +84,4 @@ You can create a bot here: https://discord.com/developers/applications.
 6) Use the generated url at the bottom of the page to invite the bot to a server you have administrator access to.
 
 7) You can get your token/client secret from the same tab, which is needed to run the bot and can be used as outlined above.
-If you don't have it or accidentally share it, click "Reset Secret" to get another for your bot (old tokens won't work, so be sure to update credentials.json manually).
+If you don't have it or accidentally share it, click "Reset Secret" to get another for your bot (old tokens won't work, so be sure to update credentials.json accordingly).
