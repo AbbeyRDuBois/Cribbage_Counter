@@ -9,17 +9,30 @@ Run "Cribbage Counter.exe" for the program.
 * pip 3
 
 ### Setup:
+
 Start by installing the dependencies using the setup script:
 
+linux:
 ```bash
 ./setup
+```
+
+windows:
+```cmd
+setup.bat
 ```
 
 ### Starting:
 Launch the bot using the start script:
 
+linux:
 ```bash
 ./start
+```
+
+windows:
+```cmd
+start.bat
 ```
 
 When opening the program for the first time you will be asked if you want to create the credentials.json file.
