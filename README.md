@@ -19,7 +19,7 @@ linux:
 
 windows:
 ```cmd
-setup.bat
+./setup.bat
 ```
 
 ### Starting:
@@ -32,7 +32,7 @@ linux:
 
 windows:
 ```cmd
-start.bat
+./start.bat
 ```
 
 When opening the program for the first time you will be asked if you want to create the credentials.json file.
