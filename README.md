@@ -54,13 +54,13 @@ Replace YOUR_API_TOKEN_HERE with your discord bot's token.
 
 Bots must be invited to a Discord server in order to be used.
 
-You can create a bot here: https://discord.com/developers/applications
+You can create a bot here: https://discord.com/developers/applications.
 
-1) Go to the applications tab on the left and select "New Application" in the top right
+1) Go to the applications tab on the left and select "New Application" in the top right.
 
-2) Name the bot, accept the terms of service, and hit "Create"
+2) Name the bot, accept the terms of service, and hit "Create".
 
-3) Go to the "Bot" tab and hit the slider to enable Message Content Intent
+3) Go to the "Bot" tab and hit the slider to enable Message Content Intent.
 
 4) Go to the "OAuth2" tab, and select bot in the OAuth2 URL Generator.
 
@@ -81,8 +81,7 @@ You can create a bot here: https://discord.com/developers/applications
  - Use Slash Commands
  - Use Embedded Activities (x2)
 
-6) Use the generated url at the bottom of the page to invite the bot to a server you have administrator access to
+6) Use the generated url at the bottom of the page to invite the bot to a server you have administrator access to.
 
-7) You can get your token/public key from the "General Information" tab, which needs to be pasted into a file named "credentials.json" as outlined above.
-You can create a bot here: https://discord.com/developers/applications.
-The required permission code is `380104853568`
+7) You can get your token/client secret from the same tab, which is needed to run the bot and can be used as outlined above.
+If you don't have it or accidentally share it, click "Reset Secret" to get another for your bot (old tokens won't work, so be sure to update credentials.json manually).
