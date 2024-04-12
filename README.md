@@ -3,13 +3,42 @@ Counts the points in your cribbage hand regardless of how many cards are in the 
 Run "Cribbage Counter.exe" for the program.
 
 # Cribbage Game
-Create a new file named "credentials.json" and copy the following code into it:
 
-{
-    "token": ""
-}
+### Requirements:
+* python 3
+* pip 3
 
-Copy your bot's token into the empty quotes and then run "main.py" to initiate the bot.
+### Setup:
+Start by installing the dependencies using the setup script:
+
+```bash
+./setup
+```
+
+### Starting:
+Launch the bot using the start script:
+
+```bash
+./start
+```
+
+When opening the program for the first time you will be asked if you want to create the credentials.json file.
+The file will be created in the current working directory so be sure you are in the root project folder when you run this.
+
+Enter `y` and the file will be created.
+
+You will then be prompted to enter your discord bot token.
+Enter the token and the bot will try to launch
+
+### Alternate Setup:
+If you would like to enter the token manually, create a file called credentials.json in the root folder of the project and enter the following:
+
+```json
+{ "token": "YOUR_API_KEY_HERE" }
+```
+
+Replace YOUR_API_TOKEN_HERE with your discord bot's token.
+
 Bots must be invited to a Discord server in order to be used.
 
 You can create a bot here: https://discord.com/developers/applications
@@ -42,3 +71,5 @@ You can create a bot here: https://discord.com/developers/applications
 6) Use the generated url at the bottom of the page to invite the bot to a server you have administrator access to
 
 7) You can get your token/public key from the "General Information" tab, which needs to be pasted into a file named "credentials.json" as outlined above.
+You can create a bot here: https://discord.com/developers/applications.
+The required permission code is `380104853568`
