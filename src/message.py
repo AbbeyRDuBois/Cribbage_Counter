@@ -182,7 +182,7 @@ async def throw_away_phase_func(author, card_index):
         game.num_thrown[player_index] += 1
 
         #Send confirmation to DMs
-        await author.send(f"Sent {card.display()} to {game.players[game.crib_index % len(game.players)]}. Choose {game.throw_count - game.num_thrown[player_index]} more.\n{game.get_hand_string(player_index)}")
+        await author.send(f"Sent {card.display()} to {game.players[game.crib_index % len(game.players)]}'s crib. Choose {game.throw_count - game.num_thrown[player_index]} more.\n{game.get_hand_string(player_index)}")
 
         if(game.num_thrown[player_index] == game.throw_count):
             all_done = True
@@ -292,9 +292,9 @@ async def pegging_phase_func(author, card_index):
                 if(game.get_winner() != None):
                     return game.get_winner_string(game.get_winner())
 
-                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card.\n'''
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card. Total is reset to 0.\n'''
             else:
-                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31.\n'''
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\n'''
             output_string += f"Everyone is done pegging.\nFlipped card: {game.deck.flipped.display()}\n"
 
             #Calculate points
