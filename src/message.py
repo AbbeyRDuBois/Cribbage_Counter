@@ -56,9 +56,9 @@ async def handle_user_messages(msg):
         return help_message()
     
     #Cribbage commands
-    elif(message == '!join'):
+    elif(message == '!join' or message == '!jion'):
         return join(msg.author)
-    elif(message == '!unjoin'):
+    elif(message == '!unjoin' or message == '!unjion'):
         return unjoin(msg.author)
     elif(message == '!unjoinall'):
         return unjoinall(msg.author)
@@ -141,7 +141,7 @@ async def start(author):
             for player_index in range(len(game.players)):
                 await game.players[player_index].send(game.get_hand_string(player_index))
 
-            return f'''{author.name} has started the game. It is {game.players[game.crib_index % len(game.players)]}'s crib.'''
+            return f'''{author.name} has started the game.\nIt is **{game.players[game.crib_index % len(game.players)]}**'s crib.'''
         else:
             return f"You can't start a game you aren't queued for, {author.name}."
     return ''
