@@ -368,9 +368,9 @@ async def pegging_phase_func(author, card_index):
                 if(game.get_winner() != None):
                     return game.get_winner_string(game.get_winner())
         
-                return no_hand + f'''{game.players[cur_pegging_index % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
+                return no_hand + f'''{game.players[cur_pegging_index % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card. Total is reset to 0.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
             else:
-                return no_hand + f'''{game.players[cur_pegging_index % len(game.players)].name} played {card.display()}, got {points} points and reached 31.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
+                return no_hand + f'''{game.players[cur_pegging_index % len(game.players)].name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
 
     return ''
 
