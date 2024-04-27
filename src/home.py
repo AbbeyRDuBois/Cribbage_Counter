@@ -19,9 +19,9 @@ def initUI(window):
     window.layout.addWidget(play_game)
 
     #Add the play mega hand game button to window
-    play_game = qtw.QPushButton("Play Mega Hand Game")
-    play_game.clicked.connect(lambda x: window.select_game(8))
-    window.layout.addWidget(play_game)
+    # play_game = qtw.QPushButton("Play Mega Hand Game")
+    # play_game.clicked.connect(lambda x: window.select_game(8))
+    # window.layout.addWidget(play_game)
 
     #Add the counter button to window
     card_counter = qtw.QPushButton("Card Counter")

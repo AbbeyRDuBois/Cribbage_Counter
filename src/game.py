@@ -38,7 +38,11 @@ def initUI(window, num_cards):
     window.home = qtw.QPushButton("Back to Home")
     window.home.clicked.connect(lambda x: home.initUI(window))
     window.layout.addWidget(window.home)
-    window.layout.addWidget(qtw.QLabel("Cribbage Discord bot coming soon (hopefully)!"))
+    window.textBrowser = qtw.QTextBrowser()
+    window.textBrowser.setOpenExternalLinks(True)
+    window.textBrowser.setStyleSheet('font-size: 30px;')
+    window.textBrowser.append('Link to cribbage Discord bot can be found <a href=https://github.com/AbbeyRDuBois/Cribbage_Counter>here</a>!')
+    window.layout.addWidget(window.textBrowser)
 
 #Checks if player can peg
 def can_peg(hand, cur_sum):
