@@ -317,10 +317,6 @@ async def pegging_phase_func(author, card_index):
             [get_points, get_output] = cp.calculate_crib(game.crib, game.deck.flipped)
             game.points[game.crib_index % len(game.players)] += get_points
             output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in sorted(game.crib, key=lambda x: x.to_int_runs())]} for {get_points} points.\n"
-
-            #Check for winner
-            if(game.get_winner() != None):
-                return game.get_winner_string(game.get_winner())
             
             #Send calculation to DMs
             await game.players[game.crib_index % len(game.players)].send("Crib:\n" + get_output)
@@ -329,6 +325,10 @@ async def pegging_phase_func(author, card_index):
             output_string += "\nTotal Points:\n"
             for player_index in range(len(game.players)):
                 output_string += f"{game.players[player_index].name} has {game.points[player_index]} points.\n"
+
+            #Check for winner
+            if(game.get_winner() != None):
+                return game.get_winner_string(game.get_winner())
 
             #Reset variables for the next round
             game.reset_round()

@@ -19,7 +19,7 @@ point_goal = 121 #Number of points to win
 skunk_length = 30 #Number of points from skunk line to end -1
 crib_count = 4 #Number of cards in crib
 hand_size = 4 #Number of cards in a hand after throwing to crib
-crib_index = 0 #Crib belongs to players%len(players)
+crib_index = 0 #crib_index++ each round. Crib belongs to players%len(players).
 pegging_index = 0 #(crib_index + 1) % len(players)
 throw_count = 0 #How many cards each player throws, initialized upon starting game
 game_started = False #True if the game has begun, else False
@@ -171,13 +171,31 @@ def create_game(num_players):
         num_thrown.append(0)
 
 #Ends the game and returns a string with point details.
-def get_winner_string(winner):
+def get_winner_string(winner, show_hands=True):
     global players
     global points
     global point_goal
     global skunk_length
+    global hands
+    global backup_hands
+    global crib
+    global crib_index
 
     player_scores = ""
+    player_hands = ""
+
+    #Shows the hands
+    if(show_hands):
+        #Make sure that backup_hands has been initialized
+        if(len(backup_hands) == len(players)):
+            for hand_index in range(len(players)):
+                player_hands += f"{players[hand_index]}'s hand: {[card.display() for card in backup_hands[hand_index]]}\n"
+
+        #Make sure that crib has been initialized
+        if(len(crib) == crib_count):
+            player_hands += f"{players[crib_index%len(players)]}'s crib: {[card.display() for card in crib]}\n"
+
+    #Shows the ending point totals
     for point_index in range(len(points)):
         if(points[point_index] < (point_goal - skunk_length - 1)):
             player_scores += f"{players[point_index]} got skunked x{(point_goal - points[point_index]) // skunk_length} at {points[point_index]} points.\n"
@@ -185,7 +203,7 @@ def get_winner_string(winner):
             player_scores += f"{players[point_index]} ended with {points[point_index]} points.\n"
 
     end_game()
-    return player_scores + f"{winner.name} has won the game! Everything will now be reset."
+    return player_hands + player_scores + f"{winner.name} has won the game! Everything will now be reset."
 
 #Sets up game for mega hand
 def mega_hand():

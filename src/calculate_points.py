@@ -198,8 +198,8 @@ def calculate_hand(hand, flipped):
 
     endTime = time.time()
 
-    print(output_string)
-    print(f"\nCalculationTime: {endTime - startTime}s")
+    # print(output_string)
+    # print(f"\nCalculationTime: {endTime - startTime}s")
 
     return points, output_string
 
@@ -230,7 +230,7 @@ def calculate_crib(hand, flipped):
 
     endTime = time.time()
 
-    print(output_string)
-    print(f"\nCalculationTime: {endTime - startTime}s")
+    # print(output_string)
+    # print(f"\nCalculationTime: {endTime - startTime}s")
 
     return points, output_string
