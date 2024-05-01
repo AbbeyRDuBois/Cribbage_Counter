@@ -180,6 +180,7 @@ def get_winner_string(winner, show_hands=True):
     global backup_hands
     global crib
     global crib_index
+    global deck
 
     player_scores = ""
     player_hands = ""
@@ -188,12 +189,13 @@ def get_winner_string(winner, show_hands=True):
     if(show_hands):
         #Make sure that backup_hands has been initialized
         if(len(backup_hands) == len(players)):
+            player_hands += f"Flipped card is: {deck.get_flipped().display}\n"
             for hand_index in range(len(players)):
-                player_hands += f"{players[hand_index]}'s hand: {[card.display() for card in backup_hands[hand_index]]}\n"
+                player_hands += f"{players[hand_index]}'s hand: {[card.display() for card in sorted(backup_hands[hand_index], key=lambda card:card.to_int_15s())]}\n"
 
         #Make sure that crib has been initialized
         if(len(crib) == crib_count):
-            player_hands += f"{players[crib_index%len(players)]}'s crib: {[card.display() for card in crib]}\n"
+            player_hands += f"{players[crib_index%len(players)]}'s crib: {[card.display() for card in sorted(crib, key=lambda card:card.to_int_15s())]}\n"
 
     #Shows the ending point totals
     for point_index in range(len(points)):

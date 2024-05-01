@@ -68,7 +68,7 @@ async def handle_user_messages(msg):
         return mega(msg.author)
     elif(message == '!start'):
         return await start(msg.author)
-    elif(re.search('![0-9]+', message) != None):
+    elif(re.search('^![0-9]+$', message) != None):
         return await card_select(msg.author, int(message[1:]))
     elif(message == '!end'):
         return end(msg.author)
