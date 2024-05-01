@@ -189,7 +189,7 @@ def get_winner_string(winner, show_hands=True):
     if(show_hands):
         #Make sure that backup_hands has been initialized
         if(len(backup_hands) == len(players)):
-            player_hands += f"Flipped card is: {deck.get_flipped().display}\n"
+            player_hands += f"Flipped card is: {deck.get_flipped().display()}\n"
             for hand_index in range(len(players)):
                 player_hands += f"{players[hand_index]}'s hand: {[card.display() for card in sorted(backup_hands[hand_index], key=lambda card:card.to_int_15s())]}\n"
 
