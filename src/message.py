@@ -195,6 +195,7 @@ async def throw_away_phase_func(author, card_index):
             if(not all_done):
                 return f'''{author.name} has finished putting cards in the crib.'''
             else:
+                game.backup_hands = copy.deepcopy(game.hands)
                 flipped = game.deck.get_flipped()
 
                 #Calculate nibs and possibly end game
@@ -212,7 +213,6 @@ async def throw_away_phase_func(author, card_index):
                 #Make sure variables are set up for pegging round
                 game.throw_away_phase = False
                 game.pegging_phase = True
-                game.backup_hands = copy.deepcopy(game.hands)
 
                 if(num_points == 0):
                     return f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\nPegging will now begin with **{game.players[game.pegging_index]}**.'''
@@ -276,6 +276,7 @@ async def pegging_phase_func(author, card_index):
                 return no_hand + f'''{author.name} played {card.display()}, bringing the total to {cur_sum}.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.'''
         elif(pegging_done):
             #prepare for next round
+            game.pegging_phase = False
             my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
             game.pegging_index += 1
             game.pegging_list = []
@@ -335,7 +336,7 @@ async def pegging_phase_func(author, card_index):
 
             #Get hands for next round
             game.hands = game.deck.get_hands(len(game.players), game.hand_size + game.throw_count)
-            game.backup_hands = copy.deepcopy(game.hands)
+            game.backup_hands = []
 
             #Send hands to DMs
             for player_index in range(len(game.players)):

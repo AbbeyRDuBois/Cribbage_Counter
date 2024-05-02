@@ -2,6 +2,7 @@
 import itertools
 import copy
 import time
+from collections import OrderedDict
 
 #Local imports
 import deck
@@ -128,7 +129,7 @@ def find_runs(hand, flipped, points=0, output_string=''):
                     multiplier_count += multiplier-1
                     total_multiplier *= multiplier
                     points += run_length * total_multiplier
-                    output_string += f"{total_multiplier} run(s) of {run_length}{set([hand[i].value for i in range(index, index+1-run_length-multiplier_count-1, -1)])} for {run_length * total_multiplier} ({points})\n"
+                    output_string += f"{total_multiplier} run(s) of {run_length}{list(OrderedDict.fromkeys([card.value for card in sorted([hand[i] for i in range(index+1-run_length-multiplier_count, index+1)], key=lambda card: card.to_int_runs())]))} for {run_length * total_multiplier} ({points})\n"
 
                     multiplier_count = 0
                     total_multiplier = 1
@@ -144,7 +145,7 @@ def find_runs(hand, flipped, points=0, output_string=''):
                 multiplier_count += multiplier-1
                 total_multiplier *= multiplier
                 points += run_length * total_multiplier
-                output_string += f"{total_multiplier} run(s) of {run_length}{set([hand[i].value for i in range(index, index+1-run_length-multiplier_count-1, -1)])} for {run_length * total_multiplier} ({points})\n"
+                output_string += f"{total_multiplier} run(s) of {run_length}{list(OrderedDict.fromkeys([card.value for card in sorted([hand[i] for i in range(index+1-run_length-multiplier_count, index+1)], key=lambda card: card.to_int_runs())]))} for {run_length * total_multiplier} ({points})\n"
                 
             #Reset variables just to be safe
             multiplier_count = 0
