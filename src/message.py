@@ -64,7 +64,6 @@ def add_return(return_list, return_string, send=SEND_PUBLIC, index=-1):
 
 async def handle_user_messages(msg):
     message = msg.content.lower()
-    print(len([[]]))
     return_list = []
 
     #Weed out excess messages
@@ -100,7 +99,7 @@ async def handle_user_messages(msg):
         return await give_role(msg.author, "Treasure Lady")
     
     #Default case (orders bot doesn't understand)
-    return ''
+    return return_list
 
 def join(author):
     return_list = []
@@ -147,6 +146,8 @@ def standard(author):
     if(game.game_started == False):
         game.end_game()
         return add_return(return_list, f"{author.name} has changed game mode to standard. Consider giving !mega a try, or use !start to begin.")
+    
+    return return_list
 
 def mega(author):
     return_list = []
@@ -154,6 +155,8 @@ def mega(author):
     if(game.game_started == False):
         game.mega_hand()
         return add_return(return_list, f"{author.name} has changed game mode to mega. Use !standard to play regular cribbage and !start to begin.")
+    
+    return return_list
     
 async def start(author):
     return_list = []
@@ -303,7 +306,7 @@ async def pegging_phase_func(author, card_index):
 
         #If player still has cards, send them to their hand. Else, add message to print.
         if(len(game.hands[player_index]) > 0):
-            add_return(return_list, game.get_hand_string(player_index), player_index)
+            add_return(return_list, game.get_hand_string(player_index), game.players[player_index])
         else:
             add_return(return_list, f"{author.name} has played their last card.\n")
 
