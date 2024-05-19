@@ -1,10 +1,10 @@
 #Foreign imports
 from random import randint
 
-HEART = '♥'
-DIAMOND = '♦'
-CLUB = '♣'
-SPADE = '♠'
+HEART = ':heart_suit:' #'♥'
+DIAMOND = ':diamond_suit:' #'♦'
+CLUB = ':club_suit:' #'♣'
+SPADE = ':spade_suit:' #'♠'
 
 ACE = 'A'
 JACK = 'J'
