@@ -18,6 +18,8 @@ def help_message():
         '**!unjoinall**': Remove all players from lobby. Only use if someone forgot to !unjoin.
         '**!standard**': Play a regular game of cribbage (default).
         '**!mega**': Play a game of mega hand (8 cards, twice as many points).
+        '**!joker**': Play a game with 2 wild cards. (Not yet implemented.)
+        '**![A2-9JQK] [HDCS]**': Used to transform the joker into the desired card. (Not yet implemented.)
         '**!start**': Starts a game with up to 4 players who have done !join.
 
       Throw Into Crib:
