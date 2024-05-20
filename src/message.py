@@ -333,6 +333,9 @@ async def pegging_phase_func(author, card_index):
             else:
                 return add_return(return_list, f'''{author.name} played {card.display()}, bringing the total to {cur_sum}.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.''')
         elif(pegging_done):
+            #Variable to hold output for speed
+            output_string = ""
+
             #prepare for next round
             game.pegging_phase = False
             my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
@@ -350,11 +353,11 @@ async def pegging_phase_func(author, card_index):
                 if(game.get_winner() != None):
                     return add_return(return_list, game.get_winner_string(game.get_winner()))
 
-                add_return(return_list, f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card. Total is reset to 0.\n''')
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card. Total is reset to 0.\n'''
             else:
-                add_return(return_list, f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\n''')
+                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\n'''
             
-            add_return(return_list, f"Everyone is done pegging.\nFlipped card: {game.deck.flipped.display()}\n")
+            output_string += f"Everyone is done pegging.\nFlipped card: {game.deck.flipped.display()}\n"
 
             #Calculate points
             for player_index in range(len(game.players)):
@@ -366,27 +369,29 @@ async def pegging_phase_func(author, card_index):
                 add_return(return_list, "Hand:\n" + get_output, game.players[(player_index + game.crib_index + 1) % len(game.players)])
 
                 #Add data to group output
-                add_return(return_list, f"{game.players[(player_index + game.crib_index + 1) % len(game.players)].name}'s hand: {[hand_card.display() for hand_card in sorted(game.hands[(player_index + game.crib_index + 1) % len(game.players)], key=lambda x: x.to_int_runs())]} for {get_points} points.\n")
+                output_string += f"{game.players[(player_index + game.crib_index + 1) % len(game.players)].name}'s hand: {[hand_card.display() for hand_card in sorted(game.hands[(player_index + game.crib_index + 1) % len(game.players)], key=lambda x: x.to_int_runs())]} for {get_points} points.\n"
 
                 #Check for winner
                 if(game.get_winner() != None):
+                    add_return(return_list, output_string)
                     return add_return(return_list, game.get_winner_string(game.get_winner()))
 
             #Calculate crib
             [get_points, get_output] = cp.calculate_crib(game.crib, game.deck.flipped)
             game.points[game.crib_index % len(game.players)] += get_points
-            add_return(return_list, f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in sorted(game.crib, key=lambda x: x.to_int_runs())]} for {get_points} points.")
+            output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in sorted(game.crib, key=lambda x: x.to_int_runs())]} for {get_points} points."
             
             #Send calculation to DMs
             add_return(return_list, "Crib:\n" + get_output, game.players[game.crib_index % len(game.players)])
 
             #Add total points for each person to the group chat variable
-            add_return(return_list, "\nTotal Points:")
+            output_string += "\nTotal Points:\n"
             for player_index in range(len(game.players)):
-                add_return(return_list, f"{game.players[player_index].name} has {game.points[player_index]} points.")
+                output_string += f"{game.players[player_index].name} has {game.points[player_index]} points."
 
             #Check for winner
             if(game.get_winner() != None):
+                add_return(return_list, output_string)
                 return add_return(return_list, game.get_winner_string(game.get_winner()))
 
             #Reset variables for the next round
@@ -402,9 +407,9 @@ async def pegging_phase_func(author, card_index):
                 add_return(return_list, hand_pic, game.players[player_index], isFile=True)
 
             #Finalize and send output_string to group chat
-            add_return(return_list, f'''\nIt is {game.players[game.crib_index % len(game.players)]}'s crib.''')
+            output_string += f'''\nIt is **{game.players[game.crib_index % len(game.players)]}**'s crib.'''
 
-            return return_list
+            return add_return(return_list, output_string)
         else:
             #Prepare variables for next iteration (up to 31)
             my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
