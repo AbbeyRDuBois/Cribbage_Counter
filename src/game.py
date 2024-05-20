@@ -1,7 +1,7 @@
 #Foreign imports
 import PyQt6.QtWidgets as qtw
 import os
-import pygame
+import pygame as pg
 from pygame.locals import *
 from PIL import Image
 from math import floor
@@ -180,12 +180,13 @@ async def get_hand_pic(plyr_index):
     num_height = 16
     base_num_width = 9 * card_width + base_card_width
     base_num_height = 4 * card_height + base_card_height + 8
+    sprite_scalar = 3
 
     #Stores index number
     card_index = 0
 
     #Create empty image with place for images
-    new_image = Image.new('RGB', (card_width*len(hands[player_index]), card_height), color=(0, 80, 80))
+    hand_image = Image.new('RGB', (card_width*len(hands[player_index]*sprite_scalar), card_height*sprite_scalar), color=(0, 80, 80))
 
     #For each card in the hand, retrieve it from the sprite sheet and add it to hand image
     for card in [card for card in sorted(hands[player_index], key=lambda x: x.to_int_runs())]:
@@ -206,14 +207,14 @@ async def get_hand_pic(plyr_index):
         x_coord = card_width * width_multiplier + base_card_width
         y_coord = card_height * height_multiplier + base_card_height
 
-        sheet = pygame.image.load(asset_file_path)
-        single_image = sheet.subsurface((x_coord, y_coord, card_width, card_height))
+        sheet = pg.image.load(asset_file_path)
+        card_image = sheet.subsurface((x_coord, y_coord, card_width, card_height))
 
-        pygame.image.save(single_image, card_file_path)
+        pg.image.save(pg.transform.rotozoom(card_image, 0, sprite_scalar), card_file_path)
 
         #Add index (![0-9]) to card
-        img = Image.open(card_file_path)
-        index_img = Image.new('RGB', (floor(card_width/2), floor(card_height/2)), color=(0, 0, 0))
+        card_img = Image.open(card_file_path)
+        index_img = Image.new('RGB', (floor(card_width*sprite_scalar/2), floor(card_height*sprite_scalar/2)), color=(0, 0, 0))
 
         index = hands[player_index].index(card)
 
@@ -229,13 +230,13 @@ async def get_hand_pic(plyr_index):
 
         num_image = sheet.subsurface((x_num_coord, y_num_coord, num_width, num_height))
 
-        pygame.image.save(num_image, index_file_path)
+        pg.image.save(pg.transform.rotozoom(num_image, 0, sprite_scalar), index_file_path)
 
-        index_img.paste(Image.open(index_file_path), (floor(card_width*3/16), floor(card_height*3/16)))
-        img.paste(index_img, (floor(card_width/4), floor(card_height/4)))
+        index_img.paste(Image.open(index_file_path), (floor(card_width*sprite_scalar*3/16), floor(card_height*sprite_scalar*3/16)))
+        card_img.paste(index_img, (floor(card_width*sprite_scalar/4), floor(card_height*sprite_scalar/4)))
 
         #Add card to line
-        new_image.paste(img, (card_index*card_width, 0))
+        hand_image.paste(card_img, (card_index*card_width*sprite_scalar, 0))
 
         #Add index to output string
         output_string += "!" + str(index) + '\t  '
@@ -244,7 +245,7 @@ async def get_hand_pic(plyr_index):
         card_index += 1
 
     #Save hand image
-    new_image.save(hand_file_path)
+    hand_image.save(hand_file_path)
 
     #Delete created images
     os.remove(card_file_path)
