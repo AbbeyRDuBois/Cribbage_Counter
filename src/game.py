@@ -1,12 +1,18 @@
 #Foreign imports
 import PyQt6.QtWidgets as qtw
+import os
+import pygame
+from pygame.locals import *
+from PIL import Image
+from math import floor
+import copy
+#import sys
 
 #Local imports
 import home
-from deck import Deck
+import deck as dk
 
-
-deck = Deck() #Deck you play with
+deck = dk.Deck() #Deck you play with
 players = [] #List of Discord users that are playing
 points = [] #Number of points, indexed same as players
 hands = [] #Hands, indexed same as players
@@ -133,6 +139,13 @@ def end_game():
     throw_away_phase = False
     pegging_phase = False
 
+#Gets the path for the images
+def getPath(limited_path):
+    # if(EXECUTABLE_MODE):
+    #     return sys.executable.rsplit('\\', 1)[0] + '\\' + limited_path
+    # else:
+    return os.path.join(os.path.dirname(__file__), limited_path)
+    
 #Get string of hand to print for player at given index
 def get_hand_string(player_index):
     global hands
@@ -144,7 +157,101 @@ def get_hand_string(player_index):
     for card in [card for card in sorted(hands[player_index], key=lambda x: x.to_int_runs())]:
         output_string += f"!{hands[player_index].index(card)},\t\t"
     output_string = output_string[:-3] + "\n"
+
     return output_string
+
+async def get_hand_pic(plyr_index):
+    player_index = copy.copy(plyr_index)
+    global hands
+
+    asset_file_path = getPath('card_art\\all_assets.png')
+    card_file_path = getPath('card_art\\card' + str(player_index) + '.png')
+    index_file_path = getPath('card_art\\index' + str(player_index) + '.png')
+    hand_file_path = getPath('card_art\\hand' + str(player_index) + '.png')
+
+    output_string = ""
+
+    #The size of the sprites
+    base_card_width = 32 #Excess room on sprite sheet
+    base_card_height = 32 #Excess room on sprite sheet
+    card_width = 32
+    card_height = 48
+    num_width = 16
+    num_height = 16
+    base_num_width = 9 * card_width + base_card_width
+    base_num_height = 4 * card_height + base_card_height + 8
+
+    #Stores index number
+    card_index = 0
+
+    #Create empty image with place for images
+    new_image = Image.new('RGB', (card_width*len(hands[player_index]), card_height), color=(0, 80, 80))
+
+    #For each card in the hand, retrieve it from the sprite sheet and add it to hand image
+    for card in [card for card in sorted(hands[player_index], key=lambda x: x.to_int_runs())]:
+        #Get right column
+        width_multiplier = 4 * floor((card.to_int_runs()-1) / 3)
+
+        #Get right sub-column based on suit
+        if card.suit == dk.DIAMOND:
+            width_multiplier += 1
+        if card.suit == dk.CLUB:
+            width_multiplier += 2
+        if card.suit == dk.HEART:
+            width_multiplier += 3
+
+        #Get right row
+        height_multiplier = (card.to_int_runs()+2) % 3
+
+        x_coord = card_width * width_multiplier + base_card_width
+        y_coord = card_height * height_multiplier + base_card_height
+
+        sheet = pygame.image.load(asset_file_path)
+        single_image = sheet.subsurface((x_coord, y_coord, card_width, card_height))
+
+        pygame.image.save(single_image, card_file_path)
+
+        #Add index (![0-9]) to card
+        img = Image.open(card_file_path)
+        index_img = Image.new('RGB', (floor(card_width/2), floor(card_height/2)), color=(0, 0, 0))
+
+        index = hands[player_index].index(card)
+
+        if index != 0:
+            num_width_multiplier = (index+2) % 3
+            num_height_multiplier = floor((index-1) / 3)
+        else:
+            num_width_multiplier = 1
+            num_height_multiplier = 3
+
+        x_num_coord = num_width * num_width_multiplier + base_num_width
+        y_num_coord = num_height * num_height_multiplier + base_num_height
+
+        num_image = sheet.subsurface((x_num_coord, y_num_coord, num_width, num_height))
+
+        pygame.image.save(num_image, index_file_path)
+
+        index_img.paste(Image.open(index_file_path), (floor(card_width*3/16), floor(card_height*3/16)))
+        img.paste(index_img, (floor(card_width/4), floor(card_height/4)))
+
+        #Add card to line
+        new_image.paste(img, (card_index*card_width, 0))
+
+        #Add index to output string
+        output_string += "!" + str(index) + '\t  '
+
+        #Increment to next index
+        card_index += 1
+
+    #Save hand image
+    new_image.save(hand_file_path)
+
+    #Delete created images
+    os.remove(card_file_path)
+    os.remove(index_file_path)
+
+    #Return image path and indexes without the final spacing
+    return hand_file_path
 
 #Sets up game to work with num_players amount of people
 def create_game(num_players):

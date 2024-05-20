@@ -2,6 +2,7 @@
 import re
 import copy
 import discord
+import os
 
 #Local imports
 import game
@@ -46,19 +47,29 @@ async def process_message(msg):
                 if(item[0] == SEND_PUBLIC):
                     await msg.channel.send(item[1])
                 else:
-                    await item[0].send(item[1])
+                    #If not a filepath, send text.
+                    if not item[2]:
+                        await item[0].send(item[1])
+                    #If a filepath (hand), then send pictures.
+                    else:
+                        #Check for valid path
+                        if not os.path.exists(os.path.dirname(item[1])):
+                            print(f"Invalid path: {item[1]}")
+                            return
+                        await item[0].send(content="Number in center of card is index.", file=discord.File(item[1]))
+                        os.remove(item[1])
 
     except Exception as error:
         print(error)
 
-def add_return(return_list, return_string, send=SEND_PUBLIC, index=-1):
+def add_return(return_list, return_string, send=SEND_PUBLIC, index=-1, isFile=False):
     if(index < 0):
         index = len(return_list)
 
     if(index >= len(return_list)):
-        return_list.append([send, return_string])
+        return_list.append([send, return_string, isFile])
     else:
-        return_list[index] = [send, return_string]
+        return_list[index] = [send, return_string, isFile]
 
     return return_list
 
@@ -177,7 +188,8 @@ async def start(author):
 
             #Send hands to DMs
             for player_index in range(len(game.players)):
-                add_return(return_list, game.get_hand_string(player_index), game.players[player_index])
+                hand_pic = await game.get_hand_pic(player_index)
+                add_return(return_list, hand_pic, game.players[player_index], isFile=True)
 
             return add_return(return_list, f'''{author.name} has started the game.\nIt is **{game.players[game.crib_index % len(game.players)]}**'s crib.''')
         else:
@@ -223,7 +235,9 @@ async def throw_away_phase_func(author, card_index):
         game.num_thrown[player_index] += 1
 
         #Send confirmation to DMs
-        add_return(return_list, f"Sent {card.display()} to {game.players[game.crib_index % len(game.players)]}'s crib. Choose {game.throw_count - game.num_thrown[player_index]} more.\n{game.get_hand_string(player_index)}", game.players[player_index])
+        add_return(return_list, f"Sent {card.display()} to {game.players[game.crib_index % len(game.players)]}'s crib. Choose {game.throw_count - game.num_thrown[player_index]} more.", game.players[player_index])
+        hand_pic = await game.get_hand_pic(player_index)
+        add_return(return_list, hand_pic, game.players[player_index], isFile=True)
 
         if(game.num_thrown[player_index] == game.throw_count):
             all_done = True
@@ -306,7 +320,8 @@ async def pegging_phase_func(author, card_index):
 
         #If player still has cards, send them to their hand. Else, add message to print.
         if(len(game.hands[player_index]) > 0):
-            add_return(return_list, game.get_hand_string(player_index), game.players[player_index])
+            hand_pic = await game.get_hand_pic(player_index)
+            add_return(return_list, hand_pic, game.players[player_index], isFile=True)
         else:
             add_return(return_list, f"{author.name} has played their last card.\n")
 
@@ -383,7 +398,8 @@ async def pegging_phase_func(author, card_index):
 
             #Send hands to DMs
             for player_index in range(len(game.players)):
-                add_return(return_list, game.get_hand_string(player_index), game.players[player_index])
+                hand_pic = await game.get_hand_pic(player_index)
+                add_return(return_list, hand_pic, game.players[player_index], isFile=True)
 
             #Finalize and send output_string to group chat
             add_return(return_list, f'''\nIt is {game.players[game.crib_index % len(game.players)]}'s crib.''')
