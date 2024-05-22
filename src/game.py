@@ -163,11 +163,11 @@ def get_hand_string(player_index):
 async def get_hand_pic(plyr_index):
     player_index = copy.copy(plyr_index)
     global hands
+    global players
 
     asset_file_path = getPath('card_art\\all_assets.png')
     card_file_path = getPath('card_art\\card' + str(player_index) + '.png')
     index_file_path = getPath('card_art\\index' + str(player_index) + '.png')
-    hand_file_path = getPath('card_art\\hand' + str(player_index) + '.png')
 
     output_string = ""
 
@@ -243,6 +243,15 @@ async def get_hand_pic(plyr_index):
 
         #Increment to next index
         card_index += 1
+
+    #Ensure concurrency for when throwing away multiple cards in rapid succession
+    try:
+        if not os.path.exists(os.path.dirname('card_art\\hand' + str(player_index) + '.png')):
+            hand_file_path = getPath('card_art\\hand' + str(player_index) + '.png')
+        else:
+            hand_file_path = getPath('card_art\\hand' + str(player_index + len(players)) + '.png')
+    except:
+        hand_file_path = getPath('card_art\\hand' + str(player_index + len(players)) + '.png')
 
     #Save hand image
     hand_image.save(hand_file_path)
