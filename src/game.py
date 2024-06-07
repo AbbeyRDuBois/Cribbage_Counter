@@ -253,7 +253,7 @@ async def get_hand_pic(plyr_index):
         else:
             hand_file_path = getPath('card_art\\hand' + str(player_index + len(players)) + '.png')
     except:
-        hand_file_path = getPath('card_art\\hand' + str(player_index + 2*len(players)) + '.png')
+        hand_file_path = getPath('card_art\\hand' + str(player_index + len(players)) + '.png')
 
     #Save hand image
     hand_image.save(hand_file_path)

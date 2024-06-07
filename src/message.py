@@ -27,7 +27,7 @@ def help_message():
       Private Commands:
         '**/hand**': View your hand
         '**/calcs**': View how points were obtained in the previous round (hands and crib)
-        
+
       Throw Into Crib:
         '**![0-9]+**': Puts the card with the given index into the current crib.
 
@@ -190,10 +190,10 @@ async def start(author):
             #Get hands
             game.hands = game.deck.get_hands(len(game.players), game.hand_size + game.throw_count)
 
-            #Send hands to DMs
-            for player_index in range(len(game.players)):
-                hand_pic = await game.get_hand_pic(player_index)
-                add_return(return_list, hand_pic, game.players[player_index], isFile=True)
+            # #Send hands to DMs
+            # for player_index in range(len(game.players)):
+            #     hand_pic = await game.get_hand_pic(player_index)
+            #     add_return(return_list, hand_pic, game.players[player_index], isFile=True)
 
             return add_return(return_list, f'''{author.name} has started the game.\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*''')
         else:
@@ -402,10 +402,10 @@ async def pegging_phase_func(author, card_index):
             game.hands = game.deck.get_hands(len(game.players), game.hand_size + game.throw_count)
             game.backup_hands = []
 
-            #Send hands to DMs
-            for player_index in range(len(game.players)):
-                hand_pic = await game.get_hand_pic(player_index)
-                add_return(return_list, hand_pic, game.players[player_index], isFile=True)
+            # #Send hands to DMs
+            # for player_index in range(len(game.players)):
+            #     hand_pic = await game.get_hand_pic(player_index)
+            #     add_return(return_list, hand_pic, game.players[player_index], isFile=True)
 
             #Finalize and send output_string to group chat
             output_string += f'''\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*'''
