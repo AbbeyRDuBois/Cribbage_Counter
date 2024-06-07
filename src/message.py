@@ -24,6 +24,10 @@ def help_message():
         '**![A2-9JQK] [HDCS]**': Used to transform the joker into the desired card. (Not yet implemented.)
         '**!start**': Starts a game with up to 4 players who have done !join.
 
+      Private Commands:
+        '**/hand**': View your hand
+        '**/calcs**': View how points were obtained in the previous round (hands and crib)
+        
       Throw Into Crib:
         '**![0-9]+**': Puts the card with the given index into the current crib.
 
@@ -46,18 +50,18 @@ async def process_message(msg):
             for item in bot_feedback:
                 if(item[0] == SEND_PUBLIC):
                     await msg.channel.send(item[1])
-                else:
-                    #If not a filepath, send text.
-                    if not item[2]:
-                        await item[0].send(item[1])
-                    #If a filepath (hand), then send pictures.
-                    else:
-                        #Check for valid path
-                        if not os.path.exists(os.path.dirname(item[1])):
-                            print(f"Invalid path: {item[1]}")
-                            return
-                        await item[0].send(content="Number in center of card is index.", file=discord.File(item[1]))
-                        os.remove(item[1])
+                # else:
+                #     #If not a filepath, send text.
+                #     if not item[2]:
+                #         await item[0].send(item[1])
+                #     #If a filepath (hand), then send pictures.
+                #     else:
+                #         #Check for valid path
+                #         if not os.path.exists(os.path.dirname(item[1])):
+                #             print(f"Invalid path: {item[1]}")
+                #             return
+                #         await item[0].send(content="Number in center of card is index.", file=discord.File(item[1])) #TODO: please delete for posterity
+                #         os.remove(item[1])
 
     except Exception as error:
         print(error)
@@ -191,7 +195,7 @@ async def start(author):
                 hand_pic = await game.get_hand_pic(player_index)
                 add_return(return_list, hand_pic, game.players[player_index], isFile=True)
 
-            return add_return(return_list, f'''{author.name} has started the game.\nIt is **{game.players[game.crib_index % len(game.players)]}**'s crib.''')
+            return add_return(return_list, f'''{author.name} has started the game.\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*''')
         else:
             return add_return(return_list, f"You can't start a game you aren't queued for, {author.name}.")
         
@@ -235,9 +239,9 @@ async def throw_away_phase_func(author, card_index):
         game.num_thrown[player_index] += 1
 
         #Send confirmation to DMs
-        add_return(return_list, f"Sent {card.display()} to {game.players[game.crib_index % len(game.players)]}'s crib. Choose {game.throw_count - game.num_thrown[player_index]} more.", game.players[player_index])
-        hand_pic = await game.get_hand_pic(player_index)
-        add_return(return_list, hand_pic, game.players[player_index], isFile=True)
+        # add_return(return_list, f"Sent {card.display()} to {game.players[game.crib_index % len(game.players)]}'s crib. Choose {game.throw_count - game.num_thrown[player_index]} more.", game.players[player_index])
+        # hand_pic = await game.get_hand_pic(player_index)
+        # add_return(return_list, hand_pic, game.players[player_index], isFile=True)
 
         if(game.num_thrown[player_index] == game.throw_count):
             all_done = True
@@ -303,10 +307,6 @@ async def pegging_phase_func(author, card_index):
         game.points[player_index] += points
         game.pegging_list.append(card)
 
-        #If pegged out, end game
-        if(game.get_winner() != None):
-            return add_return(return_list, game.get_winner_string(game.get_winner()))
-
         #Make sure next person can play. If go, then reset.
         can_play = False
         pegging_done = True
@@ -319,11 +319,8 @@ async def pegging_phase_func(author, card_index):
                 can_play = True
                 break
 
-        #If player still has cards, send them to their hand. Else, add message to print.
-        if(len(game.hands[player_index]) > 0):
-            hand_pic = await game.get_hand_pic(player_index)
-            add_return(return_list, hand_pic, game.players[player_index], isFile=True)
-        else:
+        #If player is out of cards, add message to print.
+        if(len(game.hands[player_index]) <= 0):
             add_return(return_list, f"{author.name} has played their last card.\n")
 
         #If a player who can play was found, let them play. Otherwise, increment to next player and reset.
@@ -349,7 +346,6 @@ async def pegging_phase_func(author, card_index):
             #Prepare variable to hold group chat data
             if(my_sum != 31):
                 game.points[(game.pegging_index-1) % len(game.players)] += 1
-
                 output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card. Total is reset to 0.\n'''
             else:
                 output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\n'''
@@ -363,14 +359,17 @@ async def pegging_phase_func(author, card_index):
             
             output_string += f"Flipped card: {game.deck.flipped.display()}\n"
 
+            #Reset calc_string so that it can be filled with new data
+            game.calc_string = ""
+
             #Calculate points
             for player_index in range(len(game.players)):
                 #Add points from hand
                 [get_points, get_output] = cp.calculate_hand(game.hands[(player_index + game.crib_index + 1) % len(game.players)], game.deck.get_flipped())
                 game.points[(player_index + game.crib_index + 1) % len(game.players)] += get_points
 
-                #Send calculation to DMs
-                add_return(return_list, "Hand:\n" + get_output, game.players[(player_index + game.crib_index + 1) % len(game.players)])
+                #Send calculation to variable in game.py
+                game.calc_string += f"{game.players[(player_index + game.crib_index + 1) % len(game.players)]}'s Hand:\n" + get_output + "\n\n"
 
                 #Add data to group output
                 output_string += f"{game.players[(player_index + game.crib_index + 1) % len(game.players)].name}'s hand: {[hand_card.display() for hand_card in sorted(game.hands[(player_index + game.crib_index + 1) % len(game.players)], key=lambda x: x.to_int_runs())]} for {get_points} points.\n"
@@ -384,8 +383,8 @@ async def pegging_phase_func(author, card_index):
             game.points[game.crib_index % len(game.players)] += get_points
             output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in sorted(game.crib, key=lambda x: x.to_int_runs())]} for {get_points} points."
             
-            #Send calculation to DMs
-            add_return(return_list, "Crib:\n" + get_output, game.players[game.crib_index % len(game.players)])
+            #Send calculation to variable in game.py
+            game.calc_string += f"{game.players[game.crib_index % len(game.players)]}'s Crib:\n" + get_output + "\n\n"
 
             #Add total points for each person to the group chat variable
             output_string += "\nTotal Points:\n"
@@ -409,7 +408,7 @@ async def pegging_phase_func(author, card_index):
                 add_return(return_list, hand_pic, game.players[player_index], isFile=True)
 
             #Finalize and send output_string to group chat
-            output_string += f'''\nIt is **{game.players[game.crib_index % len(game.players)]}**'s crib.'''
+            output_string += f'''\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*'''
 
             return add_return(return_list, output_string)
         else:

@@ -31,6 +31,7 @@ throw_count = 0 #How many cards each player throws, initialized upon starting ga
 game_started = False #True if the game has begun, else False
 throw_away_phase = False #True if players still need to throw cards away
 pegging_phase = False #True if players are in the pegging phase
+calc_string = "" #Saves most recent hand calculations
 
 #Creates the GUI
 #TODO: Maybe have the GUI do something?
@@ -83,6 +84,7 @@ def reset_round():
     global hands
     global backup_hands
     global crib
+    global calc_string
 
     deck.reset_deck()
     pegging_phase = False
@@ -246,12 +248,12 @@ async def get_hand_pic(plyr_index):
 
     #Ensure concurrency for when throwing away multiple cards in rapid succession
     try:
-        if not os.path.exists(os.path.dirname('card_art\\hand' + str(player_index) + '.png')):
+        if not os.path.exists(getPath('card_art\\hand' + str(player_index) + '.png')):
             hand_file_path = getPath('card_art\\hand' + str(player_index) + '.png')
         else:
             hand_file_path = getPath('card_art\\hand' + str(player_index + len(players)) + '.png')
     except:
-        hand_file_path = getPath('card_art\\hand' + str(player_index + len(players)) + '.png')
+        hand_file_path = getPath('card_art\\hand' + str(player_index + 2*len(players)) + '.png')
 
     #Save hand image
     hand_image.save(hand_file_path)
@@ -260,7 +262,7 @@ async def get_hand_pic(plyr_index):
     os.remove(card_file_path)
     os.remove(index_file_path)
 
-    #Return image path and indexes without the final spacing
+    #Return image path
     return hand_file_path
 
 #Sets up game to work with num_players amount of people
