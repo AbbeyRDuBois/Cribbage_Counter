@@ -369,7 +369,7 @@ async def pegging_phase_func(author, card_index):
                 game.points[(player_index + game.crib_index + 1) % len(game.players)] += get_points
 
                 #Send calculation to variable in game.py
-                game.calc_string += f"{game.players[(player_index + game.crib_index + 1) % len(game.players)]}'s Hand:\n" + get_output + "\n\n"
+                game.calc_string += f"**{game.players[(player_index + game.crib_index + 1) % len(game.players)]}'s Hand**:\n" + get_output + "\n\n"
 
                 #Add data to group output
                 output_string += f"{game.players[(player_index + game.crib_index + 1) % len(game.players)].name}'s hand: {[hand_card.display() for hand_card in sorted(game.hands[(player_index + game.crib_index + 1) % len(game.players)], key=lambda x: x.to_int_runs())]} for {get_points} points.\n"
@@ -384,7 +384,7 @@ async def pegging_phase_func(author, card_index):
             output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in sorted(game.crib, key=lambda x: x.to_int_runs())]} for {get_points} points."
             
             #Send calculation to variable in game.py
-            game.calc_string += f"{game.players[game.crib_index % len(game.players)]}'s Crib:\n" + get_output + "\n\n"
+            game.calc_string += f"**{game.players[game.crib_index % len(game.players)]}'s Crib**:\n" + get_output + "\n\n"
 
             #Add total points for each person to the group chat variable
             output_string += "\nTotal Points:\n"
