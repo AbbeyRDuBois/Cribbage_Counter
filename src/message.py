@@ -10,6 +10,8 @@ import calculate_points as cp
 
 SEND_PUBLIC = "general" #Variable that signifies an echo to the server. Otherwise, send message using user info.
 
+hand_messages = []
+
 def help_message():
     return '''The bot knows the following commands:
 
@@ -186,14 +188,16 @@ async def start(author):
 
             #Initiate game vars
             game.create_game(len(game.players))
+            for _ in range(len(game.players)):
+                hand_messages.append(None)
             
             #Get hands
             game.hands = game.deck.get_hands(len(game.players), game.hand_size + game.throw_count)
 
-            # #Send hands to DMs
-            # for player_index in range(len(game.players)):
-            #     hand_pic = await game.get_hand_pic(player_index)
-            #     add_return(return_list, hand_pic, game.players[player_index], isFile=True)
+            #Update hand if applicable
+            if(hand_messages[game.players.index(author)] != None):
+                hand_pic = await game.get_hand_pic(game.players.index(author))
+                await hand_messages[game.players.index(author)].edit_original_response(attachments=[discord.File(hand_pic)])
 
             return add_return(return_list, f'''{author.name} has started the game.\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*''')
         else:
@@ -238,10 +242,10 @@ async def throw_away_phase_func(author, card_index):
         game.hands[player_index].remove(card)
         game.num_thrown[player_index] += 1
 
-        #Send confirmation to DMs
-        # add_return(return_list, f"Sent {card.display()} to {game.players[game.crib_index % len(game.players)]}'s crib. Choose {game.throw_count - game.num_thrown[player_index]} more.", game.players[player_index])
-        # hand_pic = await game.get_hand_pic(player_index)
-        # add_return(return_list, hand_pic, game.players[player_index], isFile=True)
+        #Update hand if applicable
+        if(hand_messages[game.players.index(author)] != None):
+            hand_pic = await game.get_hand_pic(game.players.index(author))
+            await hand_messages[game.players.index(author)].edit_original_response(attachments=[discord.File(hand_pic)])
 
         if(game.num_thrown[player_index] == game.throw_count):
             all_done = True
@@ -319,9 +323,13 @@ async def pegging_phase_func(author, card_index):
                 can_play = True
                 break
 
-        #If player is out of cards, add message to print.
+        #If player is out of cards, add message to print. Else, update hand.
         if(len(game.hands[player_index]) <= 0):
             add_return(return_list, f"{author.name} has played their last card.\n")
+        else:
+            if(hand_messages[game.players.index(author)] != None):
+                hand_pic = await game.get_hand_pic(game.players.index(author))
+                await hand_messages[game.players.index(author)].edit_original_response(attachments=[discord.File(hand_pic)])
 
         #If a player who can play was found, let them play. Otherwise, increment to next player and reset.
         if(can_play):
@@ -402,10 +410,10 @@ async def pegging_phase_func(author, card_index):
             game.hands = game.deck.get_hands(len(game.players), game.hand_size + game.throw_count)
             game.backup_hands = []
 
-            # #Send hands to DMs
-            # for player_index in range(len(game.players)):
-            #     hand_pic = await game.get_hand_pic(player_index)
-            #     add_return(return_list, hand_pic, game.players[player_index], isFile=True)
+            #Update hand if applicable
+            if(hand_messages[game.players.index(author)] != None):
+                hand_pic = await game.get_hand_pic(game.players.index(author))
+                await hand_messages[game.players.index(author)].edit_original_response(attachments=[discord.File(hand_pic)])
 
             #Finalize and send output_string to group chat
             output_string += f'''\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*'''
