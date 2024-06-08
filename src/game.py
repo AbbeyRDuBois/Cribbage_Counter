@@ -6,7 +6,6 @@ from pygame.locals import *
 from PIL import Image
 from math import floor
 import copy
-#import sys
 
 #Local imports
 import home
