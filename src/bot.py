@@ -32,11 +32,7 @@ def run_bot():
     client = discord.Client(intents=intents)
     tree = discord.app_commands.CommandTree(client)
 
-    @tree.command(
-        name="hand",
-        description="Get your current hand",
-        guild=discord.Object(id=1226726956301815848)
-    )
+    @tree.command(name="hand", description="Get your current hand")
     async def hand_command(interaction):
         try:
             hand_pic = await game.get_hand_pic(game.players.index(interaction.user))
@@ -45,11 +41,7 @@ def run_bot():
         except:
             await interaction.response.send_message("You need to !join and !start before you can get your hand.", ephemeral=True)
 
-    @tree.command(
-        name="calcs",
-        description="Get the most recent hand calcs",
-        guild=discord.Object(id=1226726956301815848)
-    )
+    @tree.command(name="calcs", description="Get the most recent hand calcs")
     async def calc_command(interaction):
         if game.calc_string == "":
             await interaction.response.send_message("You need to finish a round before you can see the hand values.", ephemeral=True)
@@ -66,7 +58,7 @@ def run_bot():
     #On startup, sync command tree
     @client.event
     async def on_ready():
-        await tree.sync(guild=discord.Object(id=1226726956301815848))
+        await tree.sync()
         print("Cribbage Bot is ready!")
 
     # Try to run the bot
