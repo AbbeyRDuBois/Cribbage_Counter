@@ -55,7 +55,7 @@ async def process_message(msg):
                     if not os.path.exists(os.path.dirname(item[0])):
                         print(f"Invalid path: {item[0]}")
                         return
-                    await msg.channel.send(content=f"**{game.players[game.crib_index % len(game.players)]}'s** Crib. Choose card to turn joker into.", file=discord.File(item[0]))
+                    await msg.channel.send(content=f"{game.players[game.crib_index % len(game.players)]}, please choose which card to turn your joker into.", file=discord.File(item[0]))
                     os.remove(item[0])
 
     except Exception as error:
@@ -267,18 +267,19 @@ async def make_joker(author, message):
         #Change joker in crib or as flipped card to specified card
         if (game.crib_index % len(game.players)) == player_index:
             #Change joker as flipped card to specified card and initialize variables for next round
-            if game.dk.get_flipped() == game.dk.JOKER:
-                game.dk.flipped = card
+            if game.deck.get_flipped() == game.dk.JOKER:
+                game.deck.flipped = card
                 game.throw_away_phase = False
                 game.pegging_phase = True
-                return add_return(return_list, f"Flipped joker has been made into {card.display()}.")
+                return add_return(return_list, f"Flipped joker has been made into {card.display()}.\nPegging will now begin with **{game.players[game.pegging_index]}**")
             
             #Change joker in crib to specified card
             for card_index in range(len(game.crib)):
                 if game.crib[card_index].value == game.dk.JOKER:
                     game.crib[card_index] = card
-                    finished_pegging(return_list)
-                    return add_return(return_list, f"Joker in crib has been made into {card.display()}.")
+                    add_return(return_list, f"Joker in crib has been made into {card.display()}.")
+                    await finished_pegging(return_list)
+                    return return_list
 
         return add_return(return_list, f"You need to have a joker in order to use this command, {author.name}.")
     
@@ -353,9 +354,9 @@ async def throw_away_phase_func(author, card_index):
 
                 #Add display text
                 if(num_points == 0):
-                    add_return(return_list, f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\nPegging will now begin with **{game.players[game.pegging_index]}**.''')
+                    add_return(return_list, f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.''')
                 else:
-                    add_return(return_list, f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\n{game.players[game.crib_index % len(game.players)]} gets nibs for 2.\nPegging will now begin with **{game.players[game.pegging_index]}**.''')
+                    add_return(return_list, f'''{author.name} has finished putting cards in the crib.\nFlipped card is: {flipped.display()}.\n{game.players[game.crib_index % len(game.players)]} gets nibs for 2.''')
                 
                 #Check for winner
                 if(game.get_winner() != None):
@@ -369,6 +370,7 @@ async def throw_away_phase_func(author, card_index):
                 if flipped.value != game.dk.JOKER:
                     game.throw_away_phase = False
                     game.pegging_phase = True
+                    add_return(return_list, f"Pegging will now begin with **{game.players[game.pegging_index]}**.")
                 else:
                     add_return(return_list, f"{author.name} must define joker before game can proceed.")
         else:
@@ -397,7 +399,7 @@ async def finished_pegging(return_list):
 
         #Check for winner
         if(game.get_winner() != None):
-            return add_return([], game.get_winner_string(game.get_winner()))
+            return add_return(return_list, game.get_winner_string(game.get_winner()))
 
     #Calculate crib
     [get_points, get_output] = cp.calculate_crib(game.crib, game.deck.flipped)
@@ -414,7 +416,7 @@ async def finished_pegging(return_list):
 
     #Check for winner
     if(game.get_winner() != None):
-        return add_return([], game.get_winner_string(game.get_winner()))
+        return add_return(return_list, game.get_winner_string(game.get_winner()))
 
     #Reset variables for the next round
     game.reset_round()
@@ -484,9 +486,9 @@ async def pegging_phase_func(author, card_index):
         if(can_play):
             #Display data
             if(points > 0):
-                return add_return(return_list, f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.''')
+                add_return(return_list, f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.''')
             else:
-                return add_return(return_list, f'''{author.name} played {card.display()}, bringing the total to {cur_sum}.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.''')
+                add_return(return_list, f'''{author.name} played {card.display()}, bringing the total to {cur_sum}.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.''')
         elif(pegging_done):
             #prepare for next round
             game.pegging_phase = False
@@ -510,17 +512,18 @@ async def pegging_phase_func(author, card_index):
             if(game.get_winner() != None):
                 return add_return(return_list, game.get_winner_string(game.get_winner()))
     
-            #Check if there is a joker. If so, then don't calculate hands yet
+            #Check if there is a joker in the crib. If so, then don't calculate hands yet
             is_joker = False
             for card in game.crib:
                 if card.value == game.dk.JOKER:
                     is_joker = True
             
             if not is_joker:
-                finished_pegging(return_list)
+                await finished_pegging(return_list)
             else:
                 add_return(return_list, f"***Please change the joker in your crib to continue, {game.players[game.crib_index % len(game.players)].name}***")
-                add_return(return_list, game.get_hand_pic(-1), isFile=True)
+                hand_pic = await game.get_hand_pic(-1)
+                add_return(return_list, hand_pic, isFile=True)
 
             return return_list
         else:

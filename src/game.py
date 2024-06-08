@@ -127,15 +127,25 @@ def get_hand_string(player_index):
     return output_string
 
 #Get picture of hand using "all_assets" in "card_art"
-async def get_hand_pic(plyr_index):
+async def get_hand_pic(plyr_index, card=None):
+    #If a single card is passed in, ignore index and just display the card.
+    #Else, get hand if index is valid, or crib if index is negative.
     player_index = copy.copy(plyr_index)
-    if player_index == -1:
-        global crib
-        hand = crib
+    if card != None:
+        print(card.display)
+        hand = [copy.copy(card)]
     else:
-        global hands
-        hand = hands[player_index]
-    global players
+        if player_index == -1:
+            global crib
+            hand = crib
+        else:
+            global hands
+            try:
+                hand = hands[player_index]
+            except:
+                print("Invalid player index in get_hand_pic.")
+                return ""
+        global players
 
     asset_file_path = getPath('card_art\\all_assets.png')
     card_file_path = getPath('card_art\\card' + str(player_index) + '.png')
@@ -352,7 +362,7 @@ def mega_hand():
     global hand_size
 
     if(game_started == False):
-        end_game()
+        standard_mode()
         point_goal = 241
         skunk_length = 60
         hand_size = 8
@@ -363,5 +373,5 @@ def joker_mode():
     global deck
 
     if(game_started == False):
-        end_game()
+        standard_mode()
         deck = dk.JokerDeck()
