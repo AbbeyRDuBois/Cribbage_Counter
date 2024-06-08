@@ -512,7 +512,7 @@ async def pegging_phase_func(author, card_index):
                     is_joker = True
             
             if not is_joker:
-                finished_pegging(return_list, author, card, points)
+                finished_pegging(return_list)
             else:
                 add_return(return_list, f"***Please change the joker in your crib to continue, {game.players[game.crib_index % len(game.players)].name}***")
                 add_return(return_list, game.get_hand_pic(-1), isFile=True)
