@@ -10,6 +10,10 @@ ACE = 'A'
 JACK = 'J'
 QUEEN = 'Q'
 KING = 'K'
+JOKER = ':joker:'
+
+RED = ':red_circle:'
+BLACK = ':black_large_square:'
 
 VALUES = [ACE, '2', '3', '4', '5', '6', '7', '8', '9', '10', JACK, QUEEN, KING]
 SUITS = [HEART, DIAMOND, CLUB, SPADE]
@@ -28,6 +32,8 @@ class Card:
             return 12
         elif(self.value == KING):
             return 13
+        elif(self.value == JOKER):
+            return -1
         else:
             return int(self.value)
         
@@ -36,6 +42,8 @@ class Card:
             return 1
         elif(self.value in [JACK, QUEEN, KING]):
             return 10
+        elif(self.value == JOKER):
+            return -1
         else:
             return int(self.value)
         
@@ -84,3 +92,9 @@ class Deck:
 
             return extra
         return None
+    
+class JokerDeck(Deck):
+    def reset_deck(self):
+        super().reset_deck()
+        self.deck.append(Card(JOKER, RED))
+        self.deck.append(Card(JOKER, BLACK))

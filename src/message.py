@@ -8,9 +8,7 @@ import os
 import game
 import calculate_points as cp
 
-SEND_PUBLIC = "general" #Variable that signifies an echo to the server. Otherwise, send message using user info.
-
-hand_messages = []
+hand_messages = [] #Variable to hold most recent hand message so that it can be modified as needed
 
 def help_message():
     return '''The bot knows the following commands:
@@ -22,8 +20,8 @@ def help_message():
         '**!unjoinall**': Remove all players from lobby. Only use if someone forgot to !unjoin.
         '**!standard**': Play a regular game of cribbage (default).
         '**!mega**': Play a game of mega hand (8 cards, twice as many points).
-        '**!joker**': Play a game with 2 wild cards. (Not yet implemented.)
-        '**![A2-9JQK] [HDCS]**': Used to transform the joker into the desired card. (Not yet implemented.)
+        '**!joker**': Play a game with 2 wild cards.
+        '**![A2-9JQK] [HDCS]**': Used to transform the joker into the desired card.
         '**!start**': Starts a game with up to 4 players who have done !join.
 
       Private Commands:
@@ -50,32 +48,27 @@ async def process_message(msg):
         bot_feedback = await handle_user_messages(msg)
         if(len(bot_feedback) > 0):
             for item in bot_feedback:
-                if(item[0] == SEND_PUBLIC):
-                    await msg.channel.send(item[1])
-                # else:
-                #     #If not a filepath, send text.
-                #     if not item[2]:
-                #         await item[0].send(item[1])
-                #     #If a filepath (hand), then send pictures.
-                #     else:
-                #         #Check for valid path
-                #         if not os.path.exists(os.path.dirname(item[1])):
-                #             print(f"Invalid path: {item[1]}")
-                #             return
-                #         await item[0].send(content="Number in center of card is index.", file=discord.File(item[1])) #TODO: please delete for posterity
-                #         os.remove(item[1])
+                if(item[1] == False): #Not a file
+                    await msg.channel.send(item[0])
+                else:
+                    #Check for valid path
+                    if not os.path.exists(os.path.dirname(item[0])):
+                        print(f"Invalid path: {item[0]}")
+                        return
+                    await msg.channel.send(content="Behold, picture!.", file=discord.File(item[0]))
+                    os.remove(item[0])
 
     except Exception as error:
         print(error)
 
-def add_return(return_list, return_string, send=SEND_PUBLIC, index=-1, isFile=False):
+def add_return(return_list, return_string, index=-1, isFile=False):
     if(index < 0):
         index = len(return_list)
 
     if(index >= len(return_list)):
-        return_list.append([send, return_string, isFile])
+        return_list.append([return_string, isFile])
     else:
-        return_list[index] = [send, return_string, isFile]
+        return_list[index] = [return_string, isFile]
 
     return return_list
 
@@ -102,10 +95,14 @@ async def handle_user_messages(msg):
         return standard(msg.author)
     elif(message == '!mega'):
         return mega(msg.author)
+    elif(message == '!joker'):
+        return joker(msg.author)
     elif(message == '!start'):
         return await start(msg.author)
     elif(re.search('^![0-9]+$', message) != None):
         return await card_select(msg.author, int(message[1:]))
+    elif(re.search('^![a2-9jqk] [hdcs]$', message) != None):
+        return await make_joker(msg.author, message)
     elif(message == '!end'):
         return end(msg.author)
     
@@ -162,7 +159,7 @@ def standard(author):
 
     if(game.game_started == False):
         game.end_game()
-        return add_return(return_list, f"{author.name} has changed game mode to standard. Consider giving !mega a try, or use !start to begin.")
+        return add_return(return_list, f"{author.name} has changed game mode to standard. Consider giving !mega and !joker a try, or use !start to begin.")
     
     return return_list
 
@@ -171,7 +168,16 @@ def mega(author):
 
     if(game.game_started == False):
         game.mega_hand()
-        return add_return(return_list, f"{author.name} has changed game mode to mega. Use !standard to play regular cribbage and !start to begin.")
+        return add_return(return_list, f"{author.name} has changed game mode to mega. Use !standard to play regular cribbage or !start to begin.")
+    
+    return return_list
+
+def joker(author):
+    return_list = []
+
+    if(game.game_started == False):
+        game.joker_mode()
+        return add_return(return_list, f"{author.name} has changed game mode to joker mode. Use !standard to play regular cribbage or !start to begin.")
     
     return return_list
     
@@ -198,12 +204,64 @@ async def start(author):
             if(hand_messages[game.players.index(author)] != None):
                 hand_pic = await game.get_hand_pic(game.players.index(author))
                 await hand_messages[game.players.index(author)].edit_original_response(attachments=[discord.File(hand_pic)])
+                os.remove(hand_pic)
 
             return add_return(return_list, f'''{author.name} has started the game.\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*''')
         else:
             return add_return(return_list, f"You can't start a game you aren't queued for, {author.name}.")
         
     return return_list
+
+async def make_joker(author, message):
+    return_list = []
+
+    if author in game.players:
+        value = ''
+        suit = ''
+
+        #Split message into number and suit letter
+        try:
+            value_list = message[1:].split()
+
+            #Get value of card
+            match value_list[0]:
+                case 'a':
+                    value = game.dk.ACE
+                case 'j':
+                    value = game.dk.JACK
+                case 'q':
+                    value = game.dk.QUEEN
+                case 'k':
+                    value = game.dk.KING
+                case _:
+                    value = value_list[0]
+
+            #Get suit of card
+            match value_list[1]:
+                case 'h':
+                    suit = game.dk.HEART
+                case 'd':
+                    suit = game.dk.DIAMOND
+                case 'c':
+                    suit = game.dk.CLUB
+                case 's':
+                    suit = game.dk.SPADE
+        except:
+            return add_return(return_list, "Failed to parse joker message.")
+        
+        #Create card and get player index
+        card = game.dk.Card(value, suit)
+        player_index = game.players.index(author)
+
+        #Change joker to specified card
+        for card_index in range(len(game.hands[player_index])):
+            if game.hands[player_index][card_index].value == game.dk.JOKER:
+                game.hands[player_index][card_index] = card
+                return add_return(return_list, f"Joker has been made into {card.display()}.")
+
+        return add_return(return_list, f"You need to have a joker in order to use this command, {author}.")
+    
+    return add_return(return_list, f"You need to be in the game to play, {author}. Use !join to join.")
         
 async def card_select(author, card_index):
     #Get player index
@@ -233,6 +291,12 @@ async def throw_away_phase_func(author, card_index):
         player_index = game.players.index(author)
     except:
         return return_list
+    
+    #If player has joker card (joker mode), force them to make joker something before anybody throws.
+    for hand_index in range(len(game.hands)):
+        for card in game.hands[hand_index]:
+            if card.value == game.dk.JOKER:
+                return add_return(return_list, f"You can't throw away cards until {game.players[hand_index]} has made their joker something.")
 
     #Make sure player isn't throwing extra away
     if(game.num_thrown[player_index] < game.throw_count):
@@ -246,6 +310,7 @@ async def throw_away_phase_func(author, card_index):
         if(hand_messages[game.players.index(author)] != None):
             hand_pic = await game.get_hand_pic(game.players.index(author))
             await hand_messages[game.players.index(author)].edit_original_response(attachments=[discord.File(hand_pic)])
+            os.remove(hand_pic)
 
         if(game.num_thrown[player_index] == game.throw_count):
             all_done = True
@@ -330,6 +395,7 @@ async def pegging_phase_func(author, card_index):
             if(hand_messages[game.players.index(author)] != None):
                 hand_pic = await game.get_hand_pic(game.players.index(author))
                 await hand_messages[game.players.index(author)].edit_original_response(attachments=[discord.File(hand_pic)])
+                os.remove(hand_pic)
 
         #If a player who can play was found, let them play. Otherwise, increment to next player and reset.
         if(can_play):
@@ -414,6 +480,7 @@ async def pegging_phase_func(author, card_index):
             if(hand_messages[game.players.index(author)] != None):
                 hand_pic = await game.get_hand_pic(game.players.index(author))
                 await hand_messages[game.players.index(author)].edit_original_response(attachments=[discord.File(hand_pic)])
+                os.remove(hand_pic)
 
             #Finalize and send output_string to group chat
             output_string += f'''\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*'''

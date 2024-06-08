@@ -98,49 +98,13 @@ def reset_round():
 
     for ii in range(len(num_thrown)):
         num_thrown[ii] = 0
-        
+
 #Ends the game by resetting every variable to standard cribbage
 def end_game():
-    global deck
     global players
-    global points
-    global hands
-    global backup_hands
-    global crib
-    global end
-    global num_thrown
-    global pegging_list
-    global point_goal
-    global skunk_length
-    global crib_count
-    global hand_size
-    global crib_index
-    global pegging_index
-    global throw_count
-    global game_started
-    global throw_away_phase
-    global pegging_phase
-
-    deck.reset_deck()
     players = []
-    points = []
-    hands = []
-    backup_hands = []
-    crib = []
-    end = []
-    num_thrown = []
-    pegging_list = []
-    point_goal = 121
-    skunk_length = 30
-    crib_count = 4
-    hand_size = 4
-    crib_index = 0
-    pegging_index = 0
-    throw_count = 0
-    game_started = False
-    throw_away_phase = False
-    pegging_phase = False
-
+    standard_mode()
+   
 #Gets the path for the images
 def getPath(limited_path):
     # if(EXECUTABLE_MODE):
@@ -192,19 +156,27 @@ async def get_hand_pic(plyr_index):
 
     #For each card in the hand, retrieve it from the sprite sheet and add it to hand image
     for card in [card for card in sorted(hands[player_index], key=lambda x: x.to_int_runs())]:
-        #Get right column
-        width_multiplier = 4 * floor((card.to_int_runs()-1) / 3)
+        if card.value != dk.JOKER:
+            #Get right column
+            width_multiplier = 4 * floor((card.to_int_runs()-1) / 3)
 
-        #Get right sub-column based on suit
-        if card.suit == dk.DIAMOND:
-            width_multiplier += 1
-        if card.suit == dk.CLUB:
-            width_multiplier += 2
-        if card.suit == dk.HEART:
-            width_multiplier += 3
+            #Get right sub-column based on suit
+            if card.suit == dk.DIAMOND:
+                width_multiplier += 1
+            if card.suit == dk.CLUB:
+                width_multiplier += 2
+            if card.suit == dk.HEART:
+                width_multiplier += 3
 
-        #Get right row
-        height_multiplier = (card.to_int_runs()+2) % 3
+            #Get right row
+            height_multiplier = (card.to_int_runs()+2) % 3
+
+        else:
+            height_multiplier = 1
+            width_multiplier = 16 #Fourth column * 4 cards in each column
+
+            if card.suit == dk.RED:
+                width_multiplier += 1
 
         x_coord = card_width * width_multiplier + base_card_width
         y_coord = card_height * height_multiplier + base_card_height
@@ -326,6 +298,46 @@ def get_winner_string(winner, show_hands=True):
     end_game()
     return player_hands + player_scores + f"{winner.name} has won the game! Everything will now be reset."
 
+#Sets up game for standard mode
+def standard_mode():
+    global deck
+    global points
+    global hands
+    global backup_hands
+    global crib
+    global end
+    global num_thrown
+    global pegging_list
+    global point_goal
+    global skunk_length
+    global crib_count
+    global hand_size
+    global crib_index
+    global pegging_index
+    global throw_count
+    global game_started
+    global throw_away_phase
+    global pegging_phase
+
+    deck = dk.Deck()
+    points = []
+    hands = []
+    backup_hands = []
+    crib = []
+    end = []
+    num_thrown = []
+    pegging_list = []
+    point_goal = 121
+    skunk_length = 30
+    crib_count = 4
+    hand_size = 4
+    crib_index = 0
+    pegging_index = 0
+    throw_count = 0
+    game_started = False
+    throw_away_phase = False
+    pegging_phase = False
+
 #Sets up game for mega hand
 def mega_hand():
     global game_started
@@ -334,6 +346,16 @@ def mega_hand():
     global hand_size
 
     if(game_started == False):
+        end_game()
         point_goal = 241
         skunk_length = 60
         hand_size = 8
+
+#Sets up game for joker mode
+def joker_mode():
+    global game_started
+    global deck
+
+    if(game_started == False):
+        end_game()
+        deck = dk.JokerDeck()
