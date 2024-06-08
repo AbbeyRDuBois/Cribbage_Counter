@@ -55,7 +55,7 @@ async def process_message(msg):
                     if not os.path.exists(os.path.dirname(item[0])):
                         print(f"Invalid path: {item[0]}")
                         return
-                    await msg.channel.send(content=f"{game.players[game.crib_index % len(game.players)]}, please choose which card to turn your joker into.", file=discord.File(item[0]))
+                    await msg.channel.send(content=f"Flipped card: {game.deck.get_flipped()}", file=discord.File(item[0]))
                     os.remove(item[0])
 
     except Exception as error:
@@ -318,7 +318,7 @@ async def throw_away_phase_func(author, card_index):
     for hand_index in range(len(game.hands)):
         for card in game.hands[hand_index]:
             if card.value == game.dk.JOKER:
-                return add_return(return_list, f"You can't throw away cards until {game.players[hand_index]} has made their joker something.")
+                return add_return(return_list, f"You can't throw away cards until {game.players[hand_index]} has chosen which card to turn their joker into.")
 
     #Make sure player isn't throwing extra away
     if(game.num_thrown[player_index] < game.throw_count):
@@ -372,7 +372,7 @@ async def throw_away_phase_func(author, card_index):
                     game.pegging_phase = True
                     add_return(return_list, f"Pegging will now begin with **{game.players[game.pegging_index]}**.")
                 else:
-                    add_return(return_list, f"{author.name} must define joker before game can proceed.")
+                    add_return(return_list, f"***{author.name} must choose which card to turn the flipped joker into before game can proceed.***")
         else:
             return return_list
         
@@ -521,7 +521,7 @@ async def pegging_phase_func(author, card_index):
             if not is_joker:
                 await finished_pegging(return_list)
             else:
-                add_return(return_list, f"***Please change the joker in your crib to continue, {game.players[game.crib_index % len(game.players)].name}***")
+                add_return(return_list, f"***{game.players[game.crib_index % len(game.players)].name} must choose which card to turn the joker in their crib into before game can proceed.***")
                 hand_pic = await game.get_hand_pic(-1)
                 add_return(return_list, hand_pic, isFile=True)
 
