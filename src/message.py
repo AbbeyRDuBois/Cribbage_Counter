@@ -257,6 +257,11 @@ async def make_joker(author, message):
         for card_index in range(len(game.hands[player_index])):
             if game.hands[player_index][card_index].value == game.dk.JOKER:
                 game.hands[player_index][card_index] = card
+                #Update hand if applicable
+                if(hand_messages[game.players.index(author)] != None):
+                    hand_pic = await game.get_hand_pic(game.players.index(author))
+                    await hand_messages[game.players.index(author)].edit_original_response(attachments=[discord.File(hand_pic)])
+                    os.remove(hand_pic)
                 return add_return(return_list, f"Joker in hand has been made into {card.display()}.")
             
         #Change joker in crib or as flipped card to specified card
