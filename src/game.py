@@ -126,9 +126,15 @@ def get_hand_string(player_index):
 
     return output_string
 
+#Get picture of hand using "all_assets" in "card_art"
 async def get_hand_pic(plyr_index):
     player_index = copy.copy(plyr_index)
-    global hands
+    if player_index == -1:
+        global crib
+        hand = crib
+    else:
+        global hands
+        hand = hands[player_index]
     global players
 
     asset_file_path = getPath('card_art\\all_assets.png')
@@ -152,10 +158,10 @@ async def get_hand_pic(plyr_index):
     card_index = 0
 
     #Create empty image with place for images
-    hand_image = Image.new('RGB', (card_width*len(hands[player_index]*sprite_scalar), card_height*sprite_scalar), color=(0, 80, 80))
+    hand_image = Image.new('RGB', (card_width*len(hand*sprite_scalar), card_height*sprite_scalar), color=(0, 80, 80))
 
     #For each card in the hand, retrieve it from the sprite sheet and add it to hand image
-    for card in [card for card in sorted(hands[player_index], key=lambda x: x.to_int_runs())]:
+    for card in [card for card in sorted(hand, key=lambda x: x.to_int_runs())]:
         if card.value != dk.JOKER:
             #Get right column
             width_multiplier = 4 * floor((card.to_int_runs()-1) / 3)
@@ -190,7 +196,7 @@ async def get_hand_pic(plyr_index):
         card_img = Image.open(card_file_path)
         index_img = Image.new('RGB', (floor(card_width*sprite_scalar/2), floor(card_height*sprite_scalar/2)), color=(0, 0, 0))
 
-        index = hands[player_index].index(card)
+        index = hand.index(card)
 
         if index != 0:
             num_width_multiplier = (index+2) % 3

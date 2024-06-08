@@ -55,13 +55,13 @@ async def process_message(msg):
                     if not os.path.exists(os.path.dirname(item[0])):
                         print(f"Invalid path: {item[0]}")
                         return
-                    await msg.channel.send(content="Behold, picture!.", file=discord.File(item[0]))
+                    await msg.channel.send(content=f"**{game.players[game.crib_index % len(game.players)]}'s** Crib. Choose card to turn joker into.", file=discord.File(item[0]))
                     os.remove(item[0])
 
     except Exception as error:
         print(error)
 
-def add_return(return_list, return_string, index=-1, isFile=False):
+def add_return(return_list, return_string, isFile=False, index=-1):
     if(index < 0):
         index = len(return_list)
 
@@ -253,15 +253,31 @@ async def make_joker(author, message):
         card = game.dk.Card(value, suit)
         player_index = game.players.index(author)
 
-        #Change joker to specified card
+        #Change joker in hand to specified card
         for card_index in range(len(game.hands[player_index])):
             if game.hands[player_index][card_index].value == game.dk.JOKER:
                 game.hands[player_index][card_index] = card
-                return add_return(return_list, f"Joker has been made into {card.display()}.")
+                return add_return(return_list, f"Joker in hand has been made into {card.display()}.")
+            
+        #Change joker in crib or as flipped card to specified card
+        if (game.crib_index % len(game.players)) == player_index:
+            #Change joker as flipped card to specified card and initialize variables for next round
+            if game.dk.get_flipped() == game.dk.JOKER:
+                game.dk.flipped = card
+                game.throw_away_phase = False
+                game.pegging_phase = True
+                return add_return(return_list, f"Flipped joker has been made into {card.display()}.")
+            
+            #Change joker in crib to specified card
+            for card_index in range(len(game.crib)):
+                if game.crib[card_index].value == game.dk.JOKER:
+                    game.crib[card_index] = card
+                    finished_pegging(return_list)
+                    return add_return(return_list, f"Joker in crib has been made into {card.display()}.")
 
-        return add_return(return_list, f"You need to have a joker in order to use this command, {author}.")
+        return add_return(return_list, f"You need to have a joker in order to use this command, {author.name}.")
     
-    return add_return(return_list, f"You need to be in the game to play, {author}. Use !join to join.")
+    return add_return(return_list, f"You need to be in the game to play, {author.name}. Use !join to join.")
         
 async def card_select(author, card_index):
     #Get player index
@@ -345,12 +361,74 @@ async def throw_away_phase_func(author, card_index):
                     game.crib.append(game.deck.get_card())
                 
                 #Make sure variables are set up for pegging round
-                game.throw_away_phase = False
-                game.pegging_phase = True
+                if flipped.value != game.dk.JOKER:
+                    game.throw_away_phase = False
+                    game.pegging_phase = True
+                else:
+                    add_return(return_list, f"{author.name} must define joker before game can proceed.")
         else:
             return return_list
         
     return return_list
+
+async def finished_pegging(return_list):
+    #Variable to hold output for speed
+    output_string = f"Flipped card: {game.deck.flipped.display()}\n"
+
+    #Reset calc_string so that it can be filled with new data
+    game.calc_string = ""
+
+    #Calculate points
+    for player_index in range(len(game.players)):
+        #Add points from hand
+        [get_points, get_output] = cp.calculate_hand(game.hands[(player_index + game.crib_index + 1) % len(game.players)], game.deck.get_flipped())
+        game.points[(player_index + game.crib_index + 1) % len(game.players)] += get_points
+
+        #Send calculation to variable in game.py
+        game.calc_string += f"**{game.players[(player_index + game.crib_index + 1) % len(game.players)]}'s Hand**:\n" + get_output + "\n\n"
+
+        #Add data to group output
+        output_string += f"{game.players[(player_index + game.crib_index + 1) % len(game.players)].name}'s hand: {[hand_card.display() for hand_card in sorted(game.hands[(player_index + game.crib_index + 1) % len(game.players)], key=lambda x: x.to_int_runs())]} for {get_points} points.\n"
+
+        #Check for winner
+        if(game.get_winner() != None):
+            return add_return([], game.get_winner_string(game.get_winner()))
+
+    #Calculate crib
+    [get_points, get_output] = cp.calculate_crib(game.crib, game.deck.flipped)
+    game.points[game.crib_index % len(game.players)] += get_points
+    output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in sorted(game.crib, key=lambda x: x.to_int_runs())]} for {get_points} points."
+    
+    #Send calculation to variable in game.py
+    game.calc_string += f"**{game.players[game.crib_index % len(game.players)]}'s Crib**:\n" + get_output + "\n\n"
+
+    #Add total points for each person to the group chat variable
+    output_string += "\nTotal Points:\n"
+    for player_index in range(len(game.players)):
+        output_string += f"{game.players[player_index].name} has {game.points[player_index]} points.\n"
+
+    #Check for winner
+    if(game.get_winner() != None):
+        return add_return([], game.get_winner_string(game.get_winner()))
+
+    #Reset variables for the next round
+    game.reset_round()
+
+    #Get hands for next round
+    game.hands = game.deck.get_hands(len(game.players), game.hand_size + game.throw_count)
+    game.backup_hands = []
+
+    #Update hand if applicable
+    for player_index in range(len(game.players)):
+        if(hand_messages[player_index] != None):
+            hand_pic = await game.get_hand_pic(player_index)
+            await hand_messages[player_index].edit_original_response(attachments=[discord.File(hand_pic)])
+            os.remove(hand_pic)
+
+    #Finalize and send output_string to group chat
+    output_string += f'''\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*'''
+
+    return add_return(return_list, output_string)
 
 async def pegging_phase_func(author, card_index):
     return_list = []
@@ -405,9 +483,6 @@ async def pegging_phase_func(author, card_index):
             else:
                 return add_return(return_list, f'''{author.name} played {card.display()}, bringing the total to {cur_sum}.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.''')
         elif(pegging_done):
-            #Variable to hold output for speed
-            output_string = ""
-
             #prepare for next round
             game.pegging_phase = False
             my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
@@ -420,72 +495,29 @@ async def pegging_phase_func(author, card_index):
             #Prepare variable to hold group chat data
             if(my_sum != 31):
                 game.points[(game.pegging_index-1) % len(game.players)] += 1
-                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card. Total is reset to 0.\n'''
+                add_return(return_list, f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card. Total is reset to 0.\n''')
             else:
-                output_string += f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\n'''
+                add_return(return_list, f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\n''')
             
-            output_string += f"Everyone is done pegging.\n"
+            add_return(return_list, f"Everyone is done pegging.\n")
 
             #If pegged out, end game
             if(game.get_winner() != None):
-                add_return(return_list, output_string)
                 return add_return(return_list, game.get_winner_string(game.get_winner()))
+    
+            #Check if there is a joker. If so, then don't calculate hands yet
+            is_joker = False
+            for card in game.crib:
+                if card.value == game.dk.JOKER:
+                    is_joker = True
             
-            output_string += f"Flipped card: {game.deck.flipped.display()}\n"
+            if not is_joker:
+                finished_pegging(return_list, author, card, points)
+            else:
+                add_return(return_list, f"***Please change the joker in your crib to continue, {game.players[game.crib_index % len(game.players)].name}***")
+                add_return(return_list, game.get_hand_pic(-1), isFile=True)
 
-            #Reset calc_string so that it can be filled with new data
-            game.calc_string = ""
-
-            #Calculate points
-            for player_index in range(len(game.players)):
-                #Add points from hand
-                [get_points, get_output] = cp.calculate_hand(game.hands[(player_index + game.crib_index + 1) % len(game.players)], game.deck.get_flipped())
-                game.points[(player_index + game.crib_index + 1) % len(game.players)] += get_points
-
-                #Send calculation to variable in game.py
-                game.calc_string += f"**{game.players[(player_index + game.crib_index + 1) % len(game.players)]}'s Hand**:\n" + get_output + "\n\n"
-
-                #Add data to group output
-                output_string += f"{game.players[(player_index + game.crib_index + 1) % len(game.players)].name}'s hand: {[hand_card.display() for hand_card in sorted(game.hands[(player_index + game.crib_index + 1) % len(game.players)], key=lambda x: x.to_int_runs())]} for {get_points} points.\n"
-
-                #Check for winner
-                if(game.get_winner() != None):
-                    return add_return([], game.get_winner_string(game.get_winner()))
-
-            #Calculate crib
-            [get_points, get_output] = cp.calculate_crib(game.crib, game.deck.flipped)
-            game.points[game.crib_index % len(game.players)] += get_points
-            output_string += f"{game.players[game.crib_index % len(game.players)].name}'s crib: {[crib_card.display() for crib_card in sorted(game.crib, key=lambda x: x.to_int_runs())]} for {get_points} points."
-            
-            #Send calculation to variable in game.py
-            game.calc_string += f"**{game.players[game.crib_index % len(game.players)]}'s Crib**:\n" + get_output + "\n\n"
-
-            #Add total points for each person to the group chat variable
-            output_string += "\nTotal Points:\n"
-            for player_index in range(len(game.players)):
-                output_string += f"{game.players[player_index].name} has {game.points[player_index]} points.\n"
-
-            #Check for winner
-            if(game.get_winner() != None):
-                return add_return([], game.get_winner_string(game.get_winner()))
-
-            #Reset variables for the next round
-            game.reset_round()
-
-            #Get hands for next round
-            game.hands = game.deck.get_hands(len(game.players), game.hand_size + game.throw_count)
-            game.backup_hands = []
-
-            #Update hand if applicable
-            if(hand_messages[game.players.index(author)] != None):
-                hand_pic = await game.get_hand_pic(game.players.index(author))
-                await hand_messages[game.players.index(author)].edit_original_response(attachments=[discord.File(hand_pic)])
-                os.remove(hand_pic)
-
-            #Finalize and send output_string to group chat
-            output_string += f'''\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*'''
-
-            return add_return(return_list, output_string)
+            return return_list
         else:
             #Prepare variables for next iteration (up to 31)
             my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
