@@ -335,7 +335,7 @@ def get_winner_string(winner, show_hands=True):
             else: #If teams, display by team
                 num_teams = len(players) // team_count
                 team = f"Team {point_index} ("
-                for player in range(num_teams):
+                for player in range(team_count):
                     team += f"{players[player*num_teams + point_index]}, "
                 team = team[:-2] + ")"
 

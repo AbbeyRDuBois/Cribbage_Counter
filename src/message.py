@@ -553,6 +553,7 @@ async def pegging_phase_func(author, card_index):
                 add_return(return_list, f"***{game.players[game.crib_index % len(game.players)].name} must choose which card to turn the joker in their crib into before game can proceed.***")
                 hand_pic = await game.get_hand_pic(-1)
                 add_return(return_list, hand_pic, isFile=True)
+                os.remove(hand_pic)
 
             return return_list
         else:
