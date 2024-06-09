@@ -21,7 +21,7 @@ def help_message():
         '**!standard**': Play a regular game of cribbage (default).
         '**!mega**': Play a game of mega hand (8 cards, twice as many points to win).
         '**!joker**': Play a game of joker mode (2 wild cards).
-        '**![A2-9JQK] [HDCS]**': Used to transform the joker into the desired card.
+        '**![A2-9JQK]|10 [HDCS]**': Used to transform the joker into the desired card.
         '**!start**': Starts a game with up to 8 players who have done !join.
         '**!teams [0-9]+**': Splits players into teams with the specified number of players on each team. Will automatically start the game.
 
@@ -104,7 +104,7 @@ async def handle_user_messages(msg):
         return await start(msg.author)
     elif(re.search('^!teams [0-9]+$', message) != None):
         return await form_teams(msg.author, int(message[7:]))
-    elif(re.search('^![a2-9jqk] [hdcs]$', message) != None):
+    elif(re.search('^![a2-9jqk]|10 [hdcs]$', message) != None):
         return await make_joker(msg.author, message)
     elif(message == '!end'):
         return end(msg.author)
@@ -228,11 +228,11 @@ async def form_teams(author, count):
 
         #Get the list of teams
         team_list = ""
-        num_teams = int(num_players / count)
-        for team_num in range(count):
+        num_teams = num_players // count
+        for team_num in range(num_teams):
             team_list += f"Team {team_num}: "
-            for player in range(num_teams):
-                team_list += f"{game.players[player*count + team_num]}, "
+            for player in range(count):
+                team_list += f"{game.players[player*num_teams + team_num]}, "
             team_list = team_list[:-2] + "\n"
 
         #Add the teams to be printed before the start returns (index=0)

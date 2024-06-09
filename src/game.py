@@ -324,17 +324,19 @@ def get_winner_string(winner, show_hands=True):
             if team_count == 1: #If no teams, display based on name
                 player_scores += f"{players[point_index]} got skunked x{(point_goal - point_array[point_index]) // skunk_length} at {point_array[point_index]} points.\n"
             else: #If teams, display by team
+                num_teams = len(players) // team_count
                 player_scores += f"Team {point_index} ("
-                for index in range(len(players // team_count)):
-                    player_scores += f"{players[index*team_count + point_index]}, "
+                for player in range(num_teams):
+                    player_scores += f"{players[player*num_teams + point_index]}, "
                 player_scores = player_scores[:-2] + f") got skunked x{(point_goal - point_array[point_index]) // skunk_length} at {point_array[point_index]} points.\n"
         else:
             if team_count == 1: #If no teams, display based on name
                 player_scores += f"{players[point_index]} ended with {point_array[point_index]} points.\n"
             else: #If teams, display by team
+                num_teams = len(players) // team_count
                 team = f"Team {point_index} ("
-                for index in range(len(players // team_count)):
-                    team += f"{players[index*team_count + point_index]}, "
+                for player in range(num_teams):
+                    team += f"{players[player*num_teams + point_index]}, "
                 team = team[:-2] + ")"
 
                 #If this team won, replace winner_string with team
@@ -364,11 +366,11 @@ def get_point_string():
         point_count = 0
         num_teams = len(players) // team_count
 
-        for team_num in range(team_count):
+        for team_num in range(num_teams):
             output_string += f"Team {team_num} ("
-            for player in range(num_teams):
-                point_count += points[player*team_count + team_num]
-                output_string += f"{players[player*team_count + team_num]}, "
+            for player in range(team_count):
+                point_count += points[player*num_teams + team_num]
+                output_string += f"{players[player*num_teams + team_num]}, "
             output_string = output_string[:-2] + f") has {point_count} points.\n"
             point_count = 0
 
@@ -387,7 +389,7 @@ def get_point_array():
 
     for team_num in range(num_teams):
         for player in range(team_count):
-            point_count += points[player*team_count + team_num]
+            point_count += points[player*num_teams + team_num]
         point_array.append(point_count)
         point_count = 0
 
