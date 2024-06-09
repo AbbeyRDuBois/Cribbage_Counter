@@ -221,7 +221,7 @@ async def form_teams(author, count):
     num_players = len(game.players)
 
     #If teams are even, start game
-    if (num_players % game.team_count == 0):
+    if (num_players % count == 0):
         game.team_count = count
 
         return_list = await start(author)
