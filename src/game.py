@@ -31,6 +31,7 @@ game_started = False #True if the game has begun, else False
 throw_away_phase = False #True if players still need to throw cards away
 pegging_phase = False #True if players are in the pegging phase
 calc_string = "" #Saves most recent hand calculations
+team_count = 1 #Variable to hold number of players per team (combine points)
 
 #Creates the GUI
 #TODO: Maybe have the GUI do something?
@@ -61,13 +62,20 @@ def can_peg(hand, cur_sum):
                 return True
     return False
 
-#Returns the player that won or None if no winner
+#Returns a player that won or None if no winner
 def get_winner():
     global players
     global point_goal
+    global team_count
+    global points
 
-    for player_index in range(len(players)):
-        if(points[player_index] >= point_goal):
+    point_array = points
+
+    if team_count != 1:
+        point_array = get_point_array()
+
+    for player_index in range(len(point_array)):
+        if(point_array[player_index] >= point_goal):
             return players[player_index]
 
     return None
@@ -101,7 +109,9 @@ def reset_round():
 #Ends the game by resetting every variable to standard cribbage
 def end_game():
     global players
+    global team_count
     players = []
+    team_count = 1
     standard_mode()
    
 #Gets the path for the images
@@ -258,19 +268,23 @@ def create_game(num_players):
     global points
     global end
     global num_thrown
+    global crib_count
 
     if(num_players == 1):
         throw_count = 2
     elif(num_players == 2):
         throw_count = 2
-    elif(num_players == 3):
+    elif(num_players >= 3):
         throw_count = 1
     elif(num_players == 4):
         throw_count = 1
+    elif(num_players >= 5 and num_players <= 8):
+        throw_count = 1
+        crib_count = 8
     else:
         return
     
-    #Initiate points
+    #Initiate player variables
     for _ in range(num_players):
         points.append(0)
         end.append(False)
@@ -279,7 +293,6 @@ def create_game(num_players):
 #Ends the game and returns a string with point details.
 def get_winner_string(winner, show_hands=True):
     global players
-    global points
     global point_goal
     global skunk_length
     global hands
@@ -290,6 +303,7 @@ def get_winner_string(winner, show_hands=True):
 
     player_scores = ""
     player_hands = ""
+    winner_string = winner.name
 
     #Shows the hands
     if(show_hands):
@@ -304,14 +318,80 @@ def get_winner_string(winner, show_hands=True):
             player_hands += f"{players[crib_index%len(players)]}'s crib: {[card.display() for card in sorted(crib, key=lambda card:card.to_int_15s())]}\n"
 
     #Shows the ending point totals
-    for point_index in range(len(points)):
-        if(points[point_index] < (point_goal - skunk_length - 1)):
-            player_scores += f"{players[point_index]} got skunked x{(point_goal - points[point_index]) // skunk_length} at {points[point_index]} points.\n"
+    point_array = get_point_array()
+    for point_index in range(len(point_array)):
+        if(point_array[point_index] < (point_goal - skunk_length - 1)):
+            if team_count == 1: #If no teams, display based on name
+                player_scores += f"{players[point_index]} got skunked x{(point_goal - point_array[point_index]) // skunk_length} at {point_array[point_index]} points.\n"
+            else: #If teams, display by team
+                player_scores += f"Team {point_index} ("
+                for index in range(len(players // team_count)):
+                    player_scores += f"{players[index*team_count + point_index]}, "
+                player_scores = player_scores[:-2] + f") got skunked x{(point_goal - point_array[point_index]) // skunk_length} at {point_array[point_index]} points.\n"
         else:
-            player_scores += f"{players[point_index]} ended with {points[point_index]} points.\n"
+            if team_count == 1: #If no teams, display based on name
+                player_scores += f"{players[point_index]} ended with {point_array[point_index]} points.\n"
+            else: #If teams, display by team
+                team = f"Team {point_index} ("
+                for index in range(len(players // team_count)):
+                    team += f"{players[index*team_count + point_index]}, "
+                team = team[:-2] + ")"
+
+                #If this team won, replace winner_string with team
+                if(point_array[point_index] >= point_goal):
+                    winner_string = team
+
+                #Add team and point data to output string player_scores
+                player_scores += team + f" ended with {point_array[point_index]} points.\n"
 
     end_game()
-    return player_hands + player_scores + f"{winner.name} has won the game! Everything will now be reset."
+    return player_hands + player_scores + f"{winner_string} has won the game! Everything will now be reset."
+
+#Returns a string with each team and the number of points they have
+def get_point_string():
+    global team_count
+    global players
+    global points
+
+    output_string = ""
+
+    #If playing alone, don't have team names
+    #Else, print out teams and points for team
+    if team_count == 1:
+        for player_index in range(len(players)):
+            output_string += f"{players[player_index].name} has {points[player_index]} points.\n"
+    else:
+        point_count = 0
+        num_teams = len(players) // team_count
+
+        for team_num in range(team_count):
+            output_string += f"Team {team_num} ("
+            for player in range(num_teams):
+                point_count += points[player*team_count + team_num]
+                output_string += f"{players[player*team_count + team_num]}, "
+            output_string = output_string[:-2] + f") has {point_count} points.\n"
+            point_count = 0
+
+    return output_string[:-1]
+
+def get_point_array():
+    global team_count
+    global players
+    global points
+
+    output_string = ""
+    point_array = []
+
+    point_count = 0
+    num_teams = len(players) // team_count
+
+    for team_num in range(num_teams):
+        for player in range(team_count):
+            point_count += points[player*team_count + team_num]
+        point_array.append(point_count)
+        point_count = 0
+
+    return point_array
 
 #Sets up game for standard mode
 def standard_mode():

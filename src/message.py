@@ -19,10 +19,11 @@ def help_message():
         '**!unjoin**': Let the bot know that you changed your mind and don't want to play.
         '**!unjoinall**': Remove all players from lobby. Only use if someone forgot to !unjoin.
         '**!standard**': Play a regular game of cribbage (default).
-        '**!mega**': Play a game of mega hand (8 cards, twice as many points).
-        '**!joker**': Play a game with 2 wild cards.
+        '**!mega**': Play a game of mega hand (8 cards, twice as many points to win).
+        '**!joker**': Play a game of joker mode (2 wild cards).
         '**![A2-9JQK] [HDCS]**': Used to transform the joker into the desired card.
-        '**!start**': Starts a game with up to 4 players who have done !join.
+        '**!start**': Starts a game with up to 8 players who have done !join.
+        '**!teams [0-9]+**': Splits players into teams with the specified number of players on each team. Will automatically start the game.
 
       Private Commands:
         '**/hand**': View your hand
@@ -61,14 +62,14 @@ async def process_message(msg):
     except Exception as error:
         print(error)
 
-def add_return(return_list, return_string, isFile=False, index=-1):
-    if(index < 0):
+def add_return(return_list, return_string, isFile=False, index=None):
+    if(index == None):
         index = len(return_list)
 
     if(index >= len(return_list)):
         return_list.append([return_string, isFile])
-    else:
-        return_list[index] = [return_string, isFile]
+    elif(index < len(return_list)):
+        return_list.insert(index, [return_string, isFile])
 
     return return_list
 
@@ -85,6 +86,8 @@ async def handle_user_messages(msg):
         return add_return(return_list, help_message())
     
     #Cribbage commands
+    elif(re.search('^![0-9]+$', message) != None):
+        return await card_select(msg.author, int(message[1:]))
     elif(message == '!join' or message == '!jion'):
         return join(msg.author)
     elif(message == '!unjoin' or message == '!unjion'):
@@ -99,8 +102,8 @@ async def handle_user_messages(msg):
         return joker(msg.author)
     elif(message == '!start'):
         return await start(msg.author)
-    elif(re.search('^![0-9]+$', message) != None):
-        return await card_select(msg.author, int(message[1:]))
+    elif(re.search('^!teams [0-9]+$', message) != None):
+        return await form_teams(msg.author, int(message[7:]))
     elif(re.search('^![a2-9jqk] [hdcs]$', message) != None):
         return await make_joker(msg.author, message)
     elif(message == '!end'):
@@ -121,11 +124,11 @@ def join(author):
     if(game.game_started == False):
         #Add person to player list and send confirmation message
         if(author not in game.players):
-            if(len(game.players) < 4):
+            if(len(game.players) < 8):
                 game.players.append(author)
                 return add_return(return_list, f"Welcome to the game, {author.name}! Type !start to begin game with {len(game.players)} players.")
             else:
-                return add_return(return_list, f"Sorry, {author.name}. This game already has 4 players {[player.name for player in game.players]}. If this is wrong, type !unjoinall.")
+                return add_return(return_list, f"Sorry, {author.name}. This game already has 8 players {[player.name for player in game.players]}. If this is wrong, type !unjoinall.")
         else:
             return add_return(return_list, f"You've already queued for this game, {author.name}. Type !start to begin game with {len(game.players)} players.")
         
@@ -212,6 +215,34 @@ async def start(author):
         
     return return_list
 
+#Function to form teams of two if applicable
+async def form_teams(author, count):
+    return_list = []
+    num_players = len(game.players)
+
+    #If teams are even, start game
+    if (num_players % game.team_count == 0):
+        game.team_count = count
+
+        return_list = await start(author)
+
+        #Get the list of teams
+        team_list = ""
+        num_teams = int(num_players / count)
+        for team_num in range(count):
+            team_list += f"Team {team_num}: "
+            for player in range(num_teams):
+                team_list += f"{game.players[player*count + team_num]}, "
+            team_list = team_list[:-2] + "\n"
+
+        #Add the teams to be printed before the start returns (index=0)
+        add_return(return_list, f"Teams of {count} have been formed:\n{team_list}", index=0)
+    else:
+        add_return(return_list, "There must be an equal number of players on each team in order to form teams.")
+    
+    return return_list
+
+#Function to turn joker into another card
 async def make_joker(author, message):
     return_list = []
 
@@ -410,9 +441,7 @@ async def finished_pegging(return_list):
     game.calc_string += f"**{game.players[game.crib_index % len(game.players)]}'s Crib**:\n" + get_output + "\n\n"
 
     #Add total points for each person to the group chat variable
-    output_string += "\nTotal Points:\n"
-    for player_index in range(len(game.players)):
-        output_string += f"{game.players[player_index].name} has {game.points[player_index]} points.\n"
+    output_string += f"\nTotal Points:\n{game.get_point_string()}"
 
     #Check for winner
     if(game.get_winner() != None):
