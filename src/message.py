@@ -388,24 +388,23 @@ async def pegging_phase_func(author, card_index):
         cur_sum = peg_vars[2]
         cur_player_hand_size = peg_vars[3]
 
+        #Display data
+        if(last_sum == cur_sum): #If no reset
+            if(points > 0):
+                add_return(return_list, f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}.\nIt is now **{next_player}**'s turn to play.''')
+            else:
+                add_return(return_list, f'''{author.name} played {card.display()}, bringing the total to {cur_sum}.\nIt is now **{next_player}**'s turn to play.''')
+        else:
+            if(last_sum == 31):
+                add_return(return_list, f'''{author.name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\nIt is now **{next_player}**'s turn to play.''')
+            else:
+                add_return(return_list, f'''{author.name} played {card.display()}, got {points} point(s) including last card. Total is reset to 0.\nIt is now **{next_player}**'s turn to play.''')
+
         #If player is out of cards, add message to print. Else, update hand.
         if(cur_player_hand_size != 0):
             await update_hand(author)
-
-            #Display data
-            if(last_sum == cur_sum): #If no reset
-                if(points > 0):
-                    add_return(return_list, f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}.\nIt is now **{next_player}**'s turn to play.''')
-                else:
-                    add_return(return_list, f'''{author.name} played {card.display()}, bringing the total to {cur_sum}.\nIt is now **{next_player}**'s turn to play.''')
-            else:
-                if(last_sum == 31):
-                    add_return(return_list, f'''{author.name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\n''')
-                else:
-                    add_return(return_list, f'''{author.name} played {card.display()}, got {points} point(s) including last card. Total is reset to 0.\n''')
-
         else:
-            add_return(return_list, f"{author.name} has played their last card.")
+            add_return(return_list, f"{author.name} has played their last card.", index=0)
     else:
         #Prepare for next round
         my_sum = game.pegging_done()
