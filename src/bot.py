@@ -55,6 +55,22 @@ def run_bot():
         else:
             await interaction.response.send_message(game.calc_string, ephemeral=True)
 
+    #Sends each player's point total regardless of teams
+    @tree.command(name="points", description="See each player's point totals.")
+    async def point_command(interaction):
+        if game.game_started == False:
+            await interaction.response.send_message("Nobody is currently playing, so no points.", ephemeral=True)
+        else:
+            await interaction.response.send_message(game.get_point_string(True), ephemeral=True)
+
+    #Sends each player's or team's point total
+    @tree.command(name="team_points", description='''See team point totals (same as "/points" if no teams).''')
+    async def team_point_command(interaction):
+        if game.game_started == False:
+            await interaction.response.send_message("No game currently happening, so no points.", ephemeral=True)
+        else:
+            await interaction.response.send_message(game.get_point_string(), ephemeral=True)
+
     @client.event
     async def on_message(msg):
         if msg.author == client.user:

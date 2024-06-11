@@ -350,7 +350,7 @@ def get_winner_string(winner, show_hands=True):
     return player_hands + player_scores + f"{winner_string} has won the game! Everything will now be reset."
 
 #Returns a string with each team and the number of points they have
-def get_point_string():
+def get_point_string(always_solo=False):
     global team_count
     global players
     global points
@@ -359,7 +359,7 @@ def get_point_string():
 
     #If playing alone, don't have team names
     #Else, print out teams and points for team
-    if team_count == 1:
+    if team_count == 1 or always_solo == True:
         for player_index in range(len(players)):
             output_string += f"{players[player_index].name} has {points[player_index]} points.\n"
     else:

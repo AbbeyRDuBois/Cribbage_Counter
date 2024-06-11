@@ -27,7 +27,9 @@ def help_message():
 
       Private Commands:
         '**/hand**': View your hand
-        '**/calcs**': View how points were obtained in the previous round (hands and crib)
+        '**/calcs**': View how points were obtained in the previous round (hands and crib).
+        '**/points**': View current number of points each PLAYER has at current point in time.
+        '**/team_points**': View current number of points each team has at current point in time.
 
       Throw Into Crib:
         '**![0-9]+**': Puts the card with the given index into the current crib.
