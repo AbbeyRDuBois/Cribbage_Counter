@@ -623,7 +623,7 @@ def peg(player, card_index):
 
     #Get player index
     try:
-        player_index = players.index(player)
+        main_player_index = players.index(player)
         card = hands[player_index][card_index]
     except:
         return None
@@ -652,7 +652,7 @@ def peg(player, card_index):
                     pegging_index += 1
 
                     if(can_peg(hands[pegging_index % len(players)], new_sum)):
-                        return [peg_points, cur_sum, new_sum, len(hands[player_index]), card, players[pegging_index % len(players)]]
+                        return [peg_points, cur_sum, new_sum, len(hands[main_player_index]), card, players[pegging_index % len(players)]]
                 
         #If nobody can peg, reset variables for next pegging iteration (up to 31)
         pegging_list = []
@@ -665,12 +665,12 @@ def peg(player, card_index):
         for _ in range(len(players)):
             if(len(hands[pegging_index % len(players)]) > 0):
                 #If here, return points, a new_sum of 0, and player
-                return [peg_points, cur_sum, 0, len(hands[player_index]), card, players[pegging_index % len(players)]]
+                return [peg_points, cur_sum, 0, len(hands[main_player_index]), card, players[pegging_index % len(players)]]
             else:
                 pegging_index += 1
 
         #Return variables and none since no player has a hand
-        return [peg_points, cur_sum, 0, len(hands[player_index]), card, None]
+        return [peg_points, cur_sum, 0, len(hands[main_player_index]), card, None]
     
     #If player can't play that card, return None
     return None

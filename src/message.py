@@ -309,7 +309,9 @@ async def throw_away_phase_func(author, card_index):
         return add_return(return_list, f"You have already thrown away the required number of cards, {author.name}.")
 
     #Update hand if applicable.
+    print("Before hallo")
     await update_hand(author)
+    print("After hallo")
 
     #Check if everyone is done. If not, return. Else, get flipped card and begin pegging round.
     if(game.is_finished_throwing(author)):
@@ -363,6 +365,7 @@ async def finished_pegging(return_list):
 
     #Update hand if applicable
     for player_index in range(len(game.players)):
+        print("Hi")
         await update_hand(game.players[player_index])
 
     #Finalize and send output_string to group chat
@@ -402,7 +405,11 @@ async def pegging_phase_func(author, card_index):
 
         #If player is out of cards, add message to print. Else, update hand.
         if(cur_player_hand_size != 0):
+            print("Before bozo")
+            print(cur_player_hand_size)
+            print(len(game.hands[game.players.index(author)]))
             await update_hand(author)
+            print("After bozo")
         else:
             add_return(return_list, f"{author.name} has played their last card.", index=0)
     else:
