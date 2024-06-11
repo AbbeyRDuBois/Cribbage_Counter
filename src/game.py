@@ -430,8 +430,8 @@ def change_crib_joker(card, player):
     #If not player's crib or if crib doesn't have a joker, return False
     return False
 
-#Checks if joker in player's hand. Return player if there is. Else, returns None.
-def check_joker():
+#Checks if there is at least one joker in someone's hand. Returns first player with a joker if there is. Else, returns None.
+def check_hand_joker():
     global hands
     global players
     
@@ -443,6 +443,16 @@ def check_joker():
             
     #If no joker was found in hands, return None
     return None
+
+#Checks if there is a joker in the crib. Returns True if there is. Else, returns False.
+def check_crib_joker():
+    global crib
+
+    for card in crib:
+        if card.value == dk.JOKER:
+            return True
+    
+    return False
 
 #Throws away the specified card from the specified player. Returns True on success and False on failure.
 def throw_away_card(player, card_index):
@@ -531,12 +541,28 @@ def prepare_pegging():
         throw_away_phase = False
         pegging_phase = True
 
-#Resets variables for end of pegging round
+#Resets variables for end of pegging round. Return sum of pegging_list.
 def pegging_done():
     global calc_string
+    global pegging_phase
+    global pegging_list
+    global pegging_index
+    global hands
+    global backup_hands
+
+    #Prepare for next round
+    pegging_phase = False
+    my_sum = sum([my_card.to_int_15s() for my_card in pegging_list])
+    pegging_index += 1
+    pegging_list = []
+
+    #Restore the siphoned hands to their former glory
+    hands = backup_hands
 
     #Reset calc_string so that it can be filled with new data
     calc_string = ""
+
+    return my_sum
 
 #Calculate hands, add points, and return a string with the details.
 def count_hand(player):
@@ -586,6 +612,78 @@ def count_crib():
     output_string += f"\nTotal Points:\n{get_point_string()}"
 
     return output_string
+
+#The given player pegs the given card and gets associated points. Returns [number of points, current pegging sum, cards remaining, card played] on success and None on failure.
+def peg(player, card_index):
+    global players
+    global hands
+    global pegging_list
+    global points
+    global pegging_index
+
+    #Get player index
+    try:
+        player_index = players.index(player)
+        card = hands[player_index][card_index]
+    except:
+        return None
+
+    #Make sure it's author's turn
+    if(players[pegging_index % len(players)] != players[player_index]):
+        return None
+
+    cur_sum = sum([my_card.to_int_15s() for my_card in pegging_list]) + card.to_int_15s()
+
+    #Make sure sum <= 31
+    if(cur_sum <= 31):
+        #Remove card from hand, get points, and add to pegging list
+        hands[player_index].remove(card)
+        peg_points = cp.check_points(card, pegging_list, cur_sum)
+        points[player_index] += peg_points
+        pegging_list.append(card)
+
+        return [peg_points, cur_sum, len(hands[player_index]), card]
+    
+    #If player can't play that card, return None
+    return None
+
+#Checks to see if someone can play. Returns [points, current pegging sum, player] on success and None on failure.
+def check_can_play():
+    global players
+    global hands
+    global pegging_list
+    global points
+    global pegging_index
+
+    #Make sure that someone has a hand
+    for player_index in range(len(players)):
+        if(len(hands[player_index]) > 0):
+            cur_sum = sum([my_card.to_int_15s() for my_card in pegging_list])
+            
+            #Make sure next person can play. If go, then reset.
+            for _ in range(len(players)):
+                pegging_index += 1
+
+                if(can_peg(hands[pegging_index % len(players)], cur_sum)):
+                    return [0, cur_sum, players[pegging_index % len(players)]]
+                
+            #Reset variables for next pegging iteration (up to 31)
+            pegging_list = []
+            points[pegging_index % len(players)] += 1
+            pegging_index += 1
+
+            #Make sure next person has a hand. If not, then increment.
+            for _ in range(len(players)):
+                if(len(hands[pegging_index % len(players)]) > 0):
+                    break
+                else:
+                    pegging_index += 1
+
+            #If here, return 1 point, a cur_sum of 0, and the next player
+            return [1, 0, players[pegging_index % len(players)]]
+        
+    #If nobody has cards, return None
+    return None
 
 #Ends the game and returns a string with point details.
 def get_winner_string(winner, show_hands=True):

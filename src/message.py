@@ -301,8 +301,8 @@ async def throw_away_phase_func(author, card_index):
         return return_list
     
     #If player has joker card (joker mode), force them to make joker something before anybody throws.
-    if game.check_joker() != None:
-        return add_return(return_list, f"You can't throw away cards until {game.players[game.check_joker()]} has chosen which card to turn their joker into.")
+    if game.check_hand_joker() != None:
+        return add_return(return_list, f"You can't throw away cards until {game.players[game.check_hand_joker()]} has chosen which card to turn their joker into.")
 
     #If throwing away a card fails, alert player.
     if(game.throw_away_card(author, card_index) == False):
@@ -373,110 +373,62 @@ async def finished_pegging(return_list):
 async def pegging_phase_func(author, card_index):
     return_list = []
 
-    #Get player index
-    try:
-        player_index = game.players.index(author)
-    except:
+    peg_vars = game.peg(author, card_index)
+    if(peg_vars == None):
         return return_list
+    
+    next_vars = game.check_can_play()
+    if(next_vars == None):
+        points = peg_vars[0]
+    else:
+        points = peg_vars[0] + next_vars[0]
 
-    #Make sure it's author's turn
-    if(game.players[game.pegging_index % len(game.players)] != game.players[player_index]):
-        return return_list
+    card = peg_vars[3]
 
-    card = game.hands[player_index][card_index]
-    cur_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list]) + card.to_int_15s()
-
-    #Make sure sum <= 31
-    if(cur_sum <= 31):
-        #Remove card from hand, get points, and add to pegging list
-        game.hands[player_index].remove(card)
-        points = game.cp.check_points(card, game.pegging_list, cur_sum)
-        game.points[player_index] += points
-        game.pegging_list.append(card)
-
-        #Make sure next person can play. If go, then reset.
-        can_play = False
-        pegging_done = True
-        for ii in range(len(game.players)):
-            if(len(game.hands[game.pegging_index % len(game.players)]) > 0):
-                pegging_done = False
-            game.pegging_index += 1
-            if(game.can_peg(game.hands[game.pegging_index % len(game.players)], cur_sum)):
-                game.players[game.pegging_index % len(game.players)]
-                can_play = True
-                break
+    #If a player who can play was found, let them play. Otherwise, increment to next player and reset.
+    if(next_vars != None):
+        #Parse variables
+        last_sum = peg_vars[1]
+        cur_sum = next_vars[1]
+        cur_player_hand_size = peg_vars[2]
+        next_player = next_vars[2]
 
         #If player is out of cards, add message to print. Else, update hand.
-        if(len(game.hands[player_index]) <= 0):
-            add_return(return_list, f"{author.name} has played their last card.\n")
-        else:
+        if(cur_player_hand_size != 0):
             await update_hand(author)
 
-        #If a player who can play was found, let them play. Otherwise, increment to next player and reset.
-        if(can_play):
             #Display data
-            if(points > 0):
-                add_return(return_list, f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.''')
-            else:
-                add_return(return_list, f'''{author.name} played {card.display()}, bringing the total to {cur_sum}.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.''')
-        elif(pegging_done):
-            #Prepare for next round
-            game.pegging_phase = False
-            my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
-            game.pegging_index += 1
-            game.pegging_list = []
-
-            #Restore the siphoned hands to their former glory
-            game.hands = game.backup_hands
-
-            #Prepare variable to hold group chat data
-            if(my_sum != 31):
-                game.points[(game.pegging_index-1) % len(game.players)] += 1
-                add_return(return_list, f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card. Total is reset to 0.\n''')
-            else:
-                add_return(return_list, f'''{game.players[(game.pegging_index-1) % len(game.players)].name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\n''')
-            
-            add_return(return_list, f"Everyone is done pegging.\n")
-
-            #If pegged out, end game
-            if(game.get_winner() != None):
-                return add_return(return_list, game.get_winner_string(game.get_winner()))
-    
-            #Check if there is a joker in the crib. If so, then don't calculate hands yet
-            is_joker = False
-            for card in game.crib:
-                if card.value == dk.JOKER:
-                    is_joker = True
-            
-            if not is_joker:
-                await finished_pegging(return_list)
-            else:
-                add_return(return_list, f"***{game.players[game.crib_index % len(game.players)].name} must choose which card to turn the joker in their crib into before game can proceed.***")
-                hand_pic = await game.get_hand_pic(-1)
-                add_return(return_list, hand_pic, isFile=True)
-
-            return return_list
-        else:
-            #Prepare variables for next iteration (up to 31)
-            my_sum = sum([my_card.to_int_15s() for my_card in game.pegging_list])
-            game.pegging_list = []
-            cur_pegging_index = game.pegging_index
-            game.pegging_index += 1
-
-            #Make sure next person has a hand. If not, then increment. (Somebody has a hand if we got here)
-            can_play = False
-            for ii in range(len(game.players)):
-                if(len(game.hands[game.pegging_index % len(game.players)]) > 0):
-                    break
+            if(last_sum == cur_sum): #If no reset
+                if(points > 0):
+                    add_return(return_list, f'''{author.name} played {card.display()}, gaining {points} points and bringing the total to {cur_sum}.\nIt is now **{next_player}**'s turn to play.''')
                 else:
-                    game.pegging_index += 1
-
-            #Display depending on if they reached 31, and add the point for last card since summing to 31 was already calculated
-            if(my_sum != 31):
-                game.points[cur_pegging_index % len(game.players)] += 1
-                add_return(return_list, f'''{game.players[cur_pegging_index % len(game.players)].name} played {card.display()}, got {1 + points} point(s) including last card. Total is reset to 0.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.''')
+                    add_return(return_list, f'''{author.name} played {card.display()}, bringing the total to {cur_sum}.\nIt is now **{next_player}**'s turn to play.''')
             else:
-                add_return(return_list, f'''{game.players[cur_pegging_index % len(game.players)].name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\nIt is now **{game.players[game.pegging_index % len(game.players)].name}**'s turn to play.''')
+                if(last_sum == 31):
+                    add_return(return_list, f'''{author.name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\n''')
+                else:
+                    add_return(return_list, f'''{author.name} played {card.display()}, got {points} point(s) including last card. Total is reset to 0.\n''')
+
+        else:
+            add_return(return_list, f"{author.name} has played their last card.")
+    else:
+        #Prepare for next round
+        my_sum = game.pegging_done()
+
+        #Add last card data to 
+        if(my_sum != 31):
+            add_return(return_list, f'''{author.name} played {card.display()}, got {points} point(s) including last card. Total is reset to 0.\n''')
+        else:
+            add_return(return_list, f'''{author.name} played {card.display()}, got {points} points and reached 31. Total is reset to 0.\n''')
+            
+        add_return(return_list, f"Everyone is done pegging.\n")
+        
+        if(game.check_crib_joker() == False):
+            await finished_pegging(return_list)
+        else:
+            add_return(return_list, f"***{game.players[game.crib_index % len(game.players)].name} must choose which card to turn the joker in their crib into before game can proceed.***")
+            hand_pic = await game.get_hand_pic(-1)
+            add_return(return_list, hand_pic, isFile=True)
 
     #If pegged out, end game
     if(game.get_winner() != None):
