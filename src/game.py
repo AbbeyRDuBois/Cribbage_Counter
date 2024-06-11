@@ -629,7 +629,7 @@ def peg(player, card_index):
         return None
 
     #Make sure it's author's turn
-    if(players[pegging_index % len(players)] != players[player_index]):
+    if(players[pegging_index % len(players)] != players[main_player_index]):
         return None
 
     cur_sum = sum([my_card.to_int_15s() for my_card in pegging_list]) + card.to_int_15s()
@@ -637,9 +637,9 @@ def peg(player, card_index):
     #Make sure sum <= 31
     if(cur_sum <= 31):
         #Remove card from hand, get points, and add to pegging list
-        hands[player_index].remove(card)
+        hands[main_player_index].remove(card)
         peg_points = cp.check_points(card, pegging_list, cur_sum)
-        points[player_index] += peg_points
+        points[main_player_index] += peg_points
         pegging_list.append(card)
 
         #Make sure that someone has a hand
