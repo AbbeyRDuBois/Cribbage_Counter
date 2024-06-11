@@ -10,6 +10,7 @@ import copy
 #Local imports
 import home
 import deck as dk
+import calculate_points as cp
 
 deck = dk.Deck() #Deck you play with
 players = [] #List of Discord users that are playing
@@ -50,6 +51,30 @@ def initUI(window, num_cards):
     window.textBrowser.setStyleSheet('font-size: 30px;')
     window.textBrowser.append('Link to cribbage Discord bot can be found <a href=https://github.com/AbbeyRDuBois/Cribbage_Counter>here</a>!')
     window.layout.addWidget(window.textBrowser)
+
+#Starts the game
+def start_game():
+    global game_started
+    global throw_away_phase
+    global pegging_index
+    global crib_index
+    global players
+    global hands
+    global deck
+    global hand_size
+    global throw_count
+
+    if(game_started == False):
+        #Change game phase
+        game_started = True
+        throw_away_phase = True
+        pegging_index = (crib_index + 1) % len(players)
+
+        #Initiate game vars
+        create_game(len(players))
+        
+        #Get hands
+        hands = deck.get_hands(len(players), hand_size + throw_count)
 
 #Checks if player can peg
 def can_peg(hand, cur_sum):
@@ -92,6 +117,9 @@ def reset_round():
     global backup_hands
     global crib
     global calc_string
+    global players
+    global hand_size
+    global throw_count
 
     deck.reset_deck()
     pegging_phase = False
@@ -105,6 +133,10 @@ def reset_round():
 
     for ii in range(len(num_thrown)):
         num_thrown[ii] = 0
+
+    #Get hands for next round
+    hands = deck.get_hands(len(players), hand_size + throw_count)
+    backup_hands = []
 
 #Ends the game by resetting every variable to standard cribbage
 def end_game():
@@ -289,6 +321,271 @@ def create_game(num_players):
         points.append(0)
         end.append(False)
         num_thrown.append(0)
+
+#Create teams with count number of players if able. Returns True on success and False on error.
+def create_teams(count):
+    global players
+    global team_count
+
+    num_players = len(players)
+
+    #Check for valid number
+    if (count < 1):
+        return False
+
+    #If teams are even, set variable and return True
+    if (num_players % count == 0):
+        team_count = count
+
+        return True
+    
+    #If teams uneven, return False
+    return False
+
+#Creates a string to represent each team.
+def get_teams_string():
+    global players
+    global team_count
+
+    num_players = len(players)
+
+    #Get the list of teams
+    team_list = ""
+    num_teams = num_players // team_count
+    for team_num in range(num_teams):
+        team_list += f"Team {team_num}: "
+        for player in range(team_count):
+            team_list += f"{players[player*num_teams + team_num]}, "
+        team_list = team_list[:-2] + "\n"
+
+    return team_list
+
+#Change a joker in the hand of the specified player. Returns True on success and False if no joker.
+def change_hand_joker(card, player):
+    global players
+    global hands
+
+    #Type check variable before we set
+    if not isinstance(card, dk.Card):
+        return False
+
+    player_index = players.index(player)
+
+    #Change joker in hand to specified card
+    for card_index in range(len(hands[player_index])):
+        if hands[player_index][card_index].value == dk.JOKER:
+            hands[player_index][card_index] = card
+
+            return True
+    
+    #If joker not found, return False
+    return False
+
+#Changes joker that was flipped up. Returns True on success and False if no joker or if incorrect player.
+def change_flipped_joker(card, player):
+    global crib_index
+    global players
+    global deck
+    global throw_away_phase
+    global pegging_phase
+
+    #Type check variable before we set
+    if not isinstance(card, dk.Card):
+        return False
+
+    player_index = players.index(player)
+
+    #If player flipped the card, if it's a joker, change flipped to specified card and initialize variables for next round
+    if (crib_index % len(players)) == player_index:
+        if deck.get_flipped() == dk.JOKER:
+            deck.flipped = card
+            throw_away_phase = False
+            pegging_phase = True
+
+            return True
+            
+    #If wrong player or flipped card isn't joker, return False
+    return False
+
+#Change joker in crib. Returns True on success and False if no joker or if incorrect player.
+def change_crib_joker(card, player):
+    global crib_index
+    global crib
+
+    #Type check variable before we set
+    if not isinstance(card, dk.Card):
+        return False
+    
+    player_index = players.index(player)
+    
+    #If player's crib and if crib has a joker, change to specified card
+    if (crib_index % len(players)) == player_index:
+        #Change joker in crib to specified card
+        for card_index in range(len(crib)):
+            if crib[card_index].value == dk.JOKER:
+                crib[card_index] = card
+
+                return True
+    
+    #If not player's crib or if crib doesn't have a joker, return False
+    return False
+
+#Checks if joker in player's hand. Return player if there is. Else, returns None.
+def check_joker():
+    global hands
+    global players
+    
+    #If someone has a joker card (joker mode), return the player with a joker.
+    for hand_index in range(len(hands)):
+        for card in hands[hand_index]:
+            if card.value == dk.JOKER:
+                return players[hand_index]
+            
+    #If no joker was found in hands, return None
+    return None
+
+#Throws away the specified card from the specified player. Returns True on success and False on failure.
+def throw_away_card(player, card_index):
+    global players
+    global hands
+    global num_thrown
+    global throw_count
+    global crib
+
+    #Get player index
+    try:
+        player_index = players.index(player)
+    except:
+        return False
+
+    #Make sure player isn't throwing extra away
+    if(num_thrown[player_index] < throw_count):
+        #Add card to crib and remove from hand
+        card = hands[player_index][card_index]
+        crib.append(card)
+        hands[player_index].remove(card)
+        num_thrown[player_index] += 1
+
+        return True
+
+    #If player has already thrown away enough cards, return False
+    return False
+
+#Checks if player has thrown away enough cards. Returns True if all cards have been thrown. Else, returns False.
+def is_finished_throwing(player):
+    global num_thrown
+    global throw_count
+
+    #Get player index
+    try:
+        player_index = players.index(player)
+    except:
+        return False
+
+    #If player hasn't thrown enough cards away, return False.
+    if(num_thrown[player_index] < throw_count):
+        return False
+
+    #If player has thrown enough cards away, return True.
+    return True
+    
+#Checks if everyone has thrown away enough cards. Returns True if all cards have been thrown. Else, returns False.
+def everyone_is_finished_throwing():
+    global num_thrown
+    global throw_count
+
+    #If any player hasn't thrown enough cards away, return False.
+    for player_index in range(len(num_thrown)):
+        if(num_thrown[player_index] < throw_count):
+            return False
+
+    #If every player has thrown enough cards away, return True.
+    return True
+
+#Prepare variables for pegging round
+def prepare_pegging():
+    global backup_hands
+    global hands
+    global deck
+    global crib_index
+    global points
+    global players
+    global crib
+    global crib_count
+    global throw_away_phase
+    global pegging_phase
+
+    backup_hands = copy.deepcopy(hands)
+    flipped = deck.get_flipped()
+
+    #Calculate nibs and add points accordingly
+    num_points = cp.nibs(flipped)
+    points[crib_index % len(players)] += num_points
+
+    #Make sure crib has proper number of cards
+    while(len(crib) < crib_count):
+        crib.append(deck.get_card())
+    
+    #Make sure variables are set up for pegging round
+    if flipped.value != dk.JOKER:
+        throw_away_phase = False
+        pegging_phase = True
+
+#Resets variables for end of pegging round
+def pegging_done():
+    global calc_string
+
+    #Reset calc_string so that it can be filled with new data
+    calc_string = ""
+
+#Calculate hands, add points, and return a string with the details.
+def count_hand(player):
+    global deck
+    global calc_string
+    global players
+    global hands
+    global crib_index
+
+    #Get player index
+    try:
+        player_index = players.index(player)
+    except:
+        return ""
+
+    #Variable to hold output
+    output_string = ""
+
+    #Add points from hand
+    [get_points, get_output] = cp.calculate_hand(hands[(player_index + crib_index + 1) % len(players)], deck.get_flipped())
+    points[(player_index + crib_index + 1) % len(players)] += get_points
+
+    #Send calculation to variable in game.py
+    calc_string += f"**{players[(player_index + crib_index + 1) % len(players)]}'s Hand**:\n" + get_output + "\n\n"
+
+    #Add data to group output
+    output_string += f"{players[(player_index + crib_index + 1) % len(players)].name}'s hand: {[hand_card.display() for hand_card in sorted(hands[(player_index + crib_index + 1) % len(players)], key=lambda x: x.to_int_runs())]} for {get_points} points.\n"
+
+    return output_string
+
+def count_crib():
+    global deck
+    global calc_string
+    global players
+    global crib
+    global crib_index
+    
+    #Calculate crib
+    [get_points, get_output] = cp.calculate_crib(crib, deck.flipped)
+    points[crib_index % len(players)] += get_points
+    output_string = f"{players[crib_index % len(players)].name}'s crib: {[crib_card.display() for crib_card in sorted(crib, key=lambda x: x.to_int_runs())]} for {get_points} points."
+    
+    #Send calculation to variable in game.py
+    calc_string += f"**{players[crib_index % len(players)]}'s Crib**:\n" + get_output + "\n\n"
+
+    #Add total points for each person to the group chat variable
+    output_string += f"\nTotal Points:\n{get_point_string()}"
+
+    return output_string
 
 #Ends the game and returns a string with point details.
 def get_winner_string(winner, show_hands=True):
