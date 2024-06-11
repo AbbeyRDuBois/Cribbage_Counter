@@ -624,7 +624,7 @@ def peg(player, card_index):
     #Get player index
     try:
         main_player_index = players.index(player)
-        card = hands[player_index][card_index]
+        card = hands[main_player_index][card_index]
     except:
         return None
 
