@@ -30,6 +30,7 @@ def help_message():
         '**/calcs**': View how points were obtained in the previous round (hands and crib).
         '**/points**': View current number of points each PLAYER has at current point in time.
         '**/team_points**': View current number of points each team has at current point in time.
+        '**!help**': Display orders that the bot can execute.
 
       Throw Into Crib:
         '**![0-9]+**': Puts the card with the given index into the current crib.
@@ -42,8 +43,7 @@ def help_message():
 
     Other:
     '**!treasurelady**', '**!tl**': Change role to Treasure Lady.
-    '**!garbageman**', '**!gm**': Change role to Garbage Man.
-    '**!help**', '**!bot**': Display orders that the bot can execute.'''
+    '**!garbageman**', '**!gm**': Change role to Garbage Man.'''
 
 
 async def process_message(msg):
@@ -82,10 +82,6 @@ async def handle_user_messages(msg):
     #Weed out excess messages
     if(message[0] != '!'):
         return return_list
-    
-    #Help message
-    if(message == '!help' or message == '!bot'):
-        return add_return(return_list, help_message())
     
     #Cribbage commands
     elif(re.search('^![0-9]+$', message) != None):

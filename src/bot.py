@@ -71,6 +71,11 @@ def run_bot():
         else:
             await interaction.response.send_message(game.get_point_string(), ephemeral=True)
 
+    #Sends each available command
+    @tree.command(name="help", description='''See all available commands.''')
+    async def team_point_command(interaction):
+        await interaction.response.send_message(message.help_message(), ephemeral=True)
+
     @client.event
     async def on_message(msg):
         if msg.author == client.user:
