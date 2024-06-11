@@ -613,7 +613,7 @@ def count_crib():
 
     return output_string
 
-#The given player pegs the given card and gets associated points. Returns [number of points, current pegging sum, cards remaining, card played] on success and None on failure.
+#The given player pegs the given card and gets associated points. Returns [number of points, old pegging sum, current pegging sum, cards remaining, card played, next player] on success and None on failure.
 def peg(player, card_index):
     global players
     global hands
@@ -642,34 +642,22 @@ def peg(player, card_index):
         points[player_index] += peg_points
         pegging_list.append(card)
 
-        return [peg_points, cur_sum, len(hands[player_index]), card]
-    
-    #If player can't play that card, return None
-    return None
-
-#Checks to see if someone can play. Returns [points, current pegging sum, player] on success and None on failure.
-def check_can_play():
-    global players
-    global hands
-    global pegging_list
-    global points
-    global pegging_index
-
-    #Make sure that someone has a hand
-    for player_index in range(len(players)):
-        if(len(hands[player_index]) > 0):
-            cur_sum = sum([my_card.to_int_15s() for my_card in pegging_list])
-            
-            #Make sure next person can play. If go, then reset.
-            for _ in range(len(players)):
-                pegging_index += 1
-
-                if(can_peg(hands[pegging_index % len(players)], cur_sum)):
-                    return [0, cur_sum, players[pegging_index % len(players)]]
+        #Make sure that someone has a hand
+        for player_index in range(len(players)):
+            if(len(hands[player_index]) > 0):
+                new_sum = sum([my_card.to_int_15s() for my_card in pegging_list])
                 
-            #Reset variables for next pegging iteration (up to 31)
+                #Make sure next person can play. If go, then reset.
+                for _ in range(len(players)):
+                    pegging_index += 1
+
+                    if(can_peg(hands[pegging_index % len(players)], new_sum)):
+                        return [peg_points, cur_sum, new_sum, len(hands[player_index]), card, players[pegging_index % len(players)]]
+                
+            #If nobody can peg, reset variables for next pegging iteration (up to 31)
             pegging_list = []
             points[pegging_index % len(players)] += 1
+            peg_points += 1
             pegging_index += 1
 
             #Make sure next person has a hand. If not, then increment.
@@ -679,10 +667,12 @@ def check_can_play():
                 else:
                     pegging_index += 1
 
-            #If here, return 1 point, a cur_sum of 0, and the next player
-            return [1, 0, players[pegging_index % len(players)]]
-        
-    #If nobody has cards, return None
+            #If here, return points, a new_sum of 0, and None since no hands
+            return [peg_points, cur_sum, 0, len(hands[player_index]), card, None]
+
+        return [peg_points, cur_sum, len(hands[player_index]), card, players[pegging_index % len(players)]]
+    
+    #If player can't play that card, return None
     return None
 
 #Ends the game and returns a string with point details.

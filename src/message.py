@@ -376,22 +376,17 @@ async def pegging_phase_func(author, card_index):
     peg_vars = game.peg(author, card_index)
     if(peg_vars == None):
         return return_list
-    
-    next_vars = game.check_can_play()
-    if(next_vars == None):
-        points = peg_vars[0]
-    else:
-        points = peg_vars[0] + next_vars[0]
 
-    card = peg_vars[3]
+    points = peg_vars[0]
+    card = peg_vars[4]
+    next_player = peg_vars[5]
 
     #If a player who can play was found, let them play. Otherwise, increment to next player and reset.
-    if(next_vars != None):
+    if(next_player != None):
         #Parse variables
         last_sum = peg_vars[1]
-        cur_sum = next_vars[1]
-        cur_player_hand_size = peg_vars[2]
-        next_player = next_vars[2]
+        cur_sum = peg_vars[2]
+        cur_player_hand_size = peg_vars[3]
 
         #If player is out of cards, add message to print. Else, update hand.
         if(cur_player_hand_size != 0):
