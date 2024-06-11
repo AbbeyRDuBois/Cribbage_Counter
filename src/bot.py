@@ -55,6 +55,11 @@ def run_bot():
         else:
             await interaction.response.send_message(game.calc_string, ephemeral=True)
 
+    #Sends the rules of cribbage
+    @tree.command(name="rules", description='''See the rules.''')
+    async def rules_command(interaction):
+        await interaction.response.send_message(content="Rules outlined below.", file=discord.File(game.get_path("rules.txt")), ephemeral=True)
+
     #Sends each player's point total regardless of teams
     @tree.command(name="points", description="See each player's point totals.")
     async def point_command(interaction):
@@ -73,7 +78,7 @@ def run_bot():
 
     #Sends each available command
     @tree.command(name="help", description='''See all available commands.''')
-    async def team_point_command(interaction):
+    async def help_command(interaction):
         await interaction.response.send_message(message.help_message(), ephemeral=True)
 
     @client.event

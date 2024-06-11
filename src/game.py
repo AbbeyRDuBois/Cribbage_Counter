@@ -147,7 +147,7 @@ def end_game():
     standard_mode()
    
 #Gets the path for the images
-def getPath(limited_path):
+def get_path(limited_path):
     # if(EXECUTABLE_MODE):
     #     return sys.executable.rsplit('\\', 1)[0] + '\\' + limited_path
     # else:
@@ -188,9 +188,9 @@ async def get_hand_pic(plyr_index, card=None):
                 return ""
         global players
 
-    asset_file_path = getPath('card_art\\all_assets.png')
-    card_file_path = getPath('card_art\\card' + str(player_index) + '.png')
-    index_file_path = getPath('card_art\\index' + str(player_index) + '.png')
+    asset_file_path = get_path('card_art\\all_assets.png')
+    card_file_path = get_path('card_art\\card' + str(player_index) + '.png')
+    index_file_path = get_path('card_art\\index' + str(player_index) + '.png')
 
     output_string = ""
 
@@ -277,12 +277,12 @@ async def get_hand_pic(plyr_index, card=None):
 
     #Ensure concurrency for when throwing away multiple cards in rapid succession
     try:
-        if not os.path.exists(getPath('card_art\\hand' + str(player_index) + '.png')):
-            hand_file_path = getPath('card_art\\hand' + str(player_index) + '.png')
+        if not os.path.exists(get_path('card_art\\hand' + str(player_index) + '.png')):
+            hand_file_path = get_path('card_art\\hand' + str(player_index) + '.png')
         else:
-            hand_file_path = getPath('card_art\\hand' + str(player_index + len(players)) + '.png')
+            hand_file_path = get_path('card_art\\hand' + str(player_index + len(players)) + '.png')
     except:
-        hand_file_path = getPath('card_art\\hand' + str(player_index + len(players)) + '.png')
+        hand_file_path = get_path('card_art\\hand' + str(player_index + len(players)) + '.png')
 
     #Save hand image
     hand_image.save(hand_file_path)

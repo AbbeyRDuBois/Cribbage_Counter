@@ -29,7 +29,8 @@ def help_message():
         '**/calcs**': View how points were obtained in the previous round (hands and crib).
         '**/points**': View current number of points each PLAYER has at current point in time.
         '**/team_points**': View current number of points each team has at current point in time.
-        '**!help**': Display orders that the bot can execute.
+        '**/help**': Display orders that the bot can execute.
+        '**/rules**': Show the rules of cribbage.
 
       Throw Into Crib:
         '**![0-9]+**': Puts the card with the given index into the current crib.
