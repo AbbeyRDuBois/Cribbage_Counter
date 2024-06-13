@@ -333,7 +333,7 @@ async def throw_away_phase_func(author, card_index):
             
             #Check for flipped joker
             if(flipped.value == dk.JOKER):
-                add_return(return_list, f"***{author.name} must choose which card to turn the flipped joker into before game can proceed.***")
+                add_return(return_list, f"***{game.players[game.crib_index % len(game.players)].name} must choose which card to turn the flipped joker into before game can proceed.***")
             else:
                 add_return(return_list, f"Pegging will now begin with **{game.players[game.pegging_index]}**.")
         
