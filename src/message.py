@@ -303,7 +303,7 @@ async def throw_away_phase_func(author, card_index):
     
     #If player has joker card (joker mode), force them to make joker something before anybody throws.
     if game.check_hand_joker() != None:
-        return add_return(return_list, f"You can't throw away cards until {game.players[game.check_hand_joker()]} has chosen which card to turn their joker into.")
+        return add_return(return_list, f"You can't throw away cards until {game.check_hand_joker().name} has chosen which card to turn their joker into.")
 
     #If throwing away a card fails, alert player.
     if(game.throw_away_card(author, card_index) == False):
@@ -314,8 +314,8 @@ async def throw_away_phase_func(author, card_index):
 
     #Check if everyone is done. If not, return. Else, get flipped card and begin pegging round.
     if(game.is_finished_throwing(author)):
-        add_return(return_list, f'''{author.name} has finished putting cards in the crib.''')
         if(not game.everyone_is_finished_throwing()):
+            add_return(return_list, f'''{author.name} has finished putting cards in the crib.''')
             return return_list
         else:
             game.prepare_pegging()

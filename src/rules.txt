@@ -35,9 +35,9 @@ The object in play is to score points by pegging. In addition to a Go, a player 
 *Four / Double Pair / Double Pair Royal*: For adding the fourth card of the same rank Peg 12
 
 *Run (Sequence)*: For adding a card that forms, with those just played:
-For a sequence of three Peg 3
-For a sequence of four. Peg 4
-For a sequence of five. Peg 5
+For a sequence of three, Peg 3
+For a sequence of four, Peg 4
+For a sequence of five, Peg 5
 (Peg one point more for each extra card of a sequence. Note that runs are independent of suits, but go strictly by rank; to illustrate: 9, 10, J, or J, 9, 10 is a run but 9, 10, Q is not.)
 It is important to keep track of the order in which cards are played to determine whether what looks like a sequence or a run has been interrupted by a "foreign card." Example: Cards are played in this order: 8, 7, 7, 6. The dealer pegs 2 for 15, and the opponent pegs 2 for pair, but the dealer cannot peg for run because of the extra seven (foreign card) that has been played. Example: Cards are played in this order: 9, 6, 8, 7. The dealer pegs 2 for fifteen when he or she plays the six and pegs 4 for run when he plays the seven (the 6, 7, 8, 9 sequence). The cards were not played in sequential order, but they form a true run with no foreign card.
 

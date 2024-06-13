@@ -369,7 +369,10 @@ def change_hand_joker(card, player):
     if not isinstance(card, dk.Card):
         return False
 
-    player_index = players.index(player)
+    try:
+        player_index = players.index(player)
+    except:
+        return False
 
     #Change joker in hand to specified card
     for card_index in range(len(hands[player_index])):
@@ -393,11 +396,14 @@ def change_flipped_joker(card, player):
     if not isinstance(card, dk.Card):
         return False
 
-    player_index = players.index(player)
+    try:
+        player_index = players.index(player)
+    except:
+        return False
 
     #If player flipped the card, if it's a joker, change flipped to specified card and initialize variables for next round
     if (crib_index % len(players)) == player_index:
-        if deck.get_flipped() == dk.JOKER:
+        if deck.get_flipped().value == dk.JOKER:
             deck.flipped = card
             throw_away_phase = False
             pegging_phase = True
@@ -416,7 +422,10 @@ def change_crib_joker(card, player):
     if not isinstance(card, dk.Card):
         return False
     
-    player_index = players.index(player)
+    try:
+        player_index = players.index(player)
+    except:
+        return False
     
     #If player's crib and if crib has a joker, change to specified card
     if (crib_index % len(players)) == player_index:
