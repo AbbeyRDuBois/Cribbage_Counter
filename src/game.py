@@ -837,7 +837,6 @@ def mega_hand():
     global hand_size
 
     if(game_started == False):
-        standard_mode()
         point_goal = 241
         skunk_length = 60
         hand_size = 8
@@ -848,5 +847,4 @@ def joker_mode():
     global deck
 
     if(game_started == False):
-        standard_mode()
         deck = dk.JokerDeck()
