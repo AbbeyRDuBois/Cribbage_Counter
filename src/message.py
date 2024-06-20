@@ -262,7 +262,16 @@ async def make_joker(author, message):
             
         #Change flipped joker to specified card
         elif game.change_flipped_joker(card, author) == True:
-            return add_return(return_list, f"Flipped joker has been made into {card.display()}.\nPegging will now begin with **{game.players[game.pegging_index]}**")
+            if(card.value == dk.JACK):
+                add_return(return_list, f"Flipped joker has been made into {card.display()}.\n{game.players[game.crib_index % len(game.players)]} gets nibs for 2.\nPegging will now begin with **{game.players[game.pegging_index]}**")
+                
+                #Check for winner
+                if(game.get_winner() != None):
+                    return add_return(return_list, game.get_winner_string(game.get_winner()))
+            
+                return return_list
+            else:
+                return add_return(return_list, f"Flipped joker has been made into {card.display()}.\nPegging will now begin with **{game.players[game.pegging_index]}**")
             
         #Change joker in crib to specified card
         elif game.change_crib_joker(card, author) == True:

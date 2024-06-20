@@ -47,6 +47,10 @@ def run_bot():
         except:
             await interaction.response.send_message("You need to !join and !start before you can get your hand.", ephemeral=True)
 
+    @tree.command(name="h", description="Get your current hand")
+    async def h_command(interaction):
+        hand_command(interaction)
+
     #Sends calculations of most recent hand(s)/crib
     @tree.command(name="calcs", description="Get the most recent hand calcs")
     async def calc_command(interaction):

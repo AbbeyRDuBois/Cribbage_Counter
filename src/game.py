@@ -408,6 +408,10 @@ def change_flipped_joker(card, player):
             throw_away_phase = False
             pegging_phase = True
 
+            #Calculate nibs and add points accordingly
+            num_points = cp.nibs(card)
+            points[crib_index % len(players)] += num_points
+
             return True
             
     #If wrong player or flipped card isn't joker, return False
