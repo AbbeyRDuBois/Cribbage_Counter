@@ -301,6 +301,8 @@ def create_game(num_players):
     global end
     global num_thrown
     global crib_count
+    global point_goal
+    global skunk_length
 
     if(num_players == 1):
         throw_count = 2
@@ -313,6 +315,8 @@ def create_game(num_players):
     elif(num_players >= 5 and num_players <= 8):
         throw_count = 1
         crib_count = 8
+        point_goal = 241
+        skunk_length = 60
     else:
         return
     
