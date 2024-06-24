@@ -385,6 +385,9 @@ async def pegging_phase_func(author, card_index):
 
     peg_vars = game.peg(author, card_index)
     if(peg_vars == None):
+        #If pegged out, end game
+        if(game.get_winner() != None):
+            return add_return(return_list, game.get_winner_string(game.get_winner()))
         return return_list
 
     points = peg_vars[0]
