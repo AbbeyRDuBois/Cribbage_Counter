@@ -376,7 +376,7 @@ async def finished_pegging(return_list):
         await update_hand(game.players[player_index])
 
     #Finalize and send output_string to group chat
-    output_string += f'''\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*'''
+    output_string += f'''\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/h" or "/hand" to see your hand.*'''
 
     return add_return(return_list, output_string)
 

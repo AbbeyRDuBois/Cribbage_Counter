@@ -39,13 +39,17 @@ def run_bot():
             hand_pic = await game.get_hand_pic(game.players.index(interaction.user))
             await interaction.response.send_message(content="Number in center of card is index.", file=discord.File(hand_pic), ephemeral=True)
             os.remove(hand_pic)
+        except:
+            await interaction.response.send_message("You need to !join and !start before you can get your hand.", ephemeral=True)
 
+        try:
             #Delete old ephemeral message and create new one
             if(message.hand_messages[game.players.index(interaction.user)] != None):
                 await message.hand_messages[game.players.index(interaction.user)].delete_original_response()
             message.hand_messages[game.players.index(interaction.user)] = interaction
         except:
-            await interaction.response.send_message("You need to !join and !start before you can get your hand.", ephemeral=True)
+            pass
+        
 
     @tree.command(name="h", description="Get your current hand")
     async def h_command(interaction):

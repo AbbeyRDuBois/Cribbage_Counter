@@ -722,7 +722,7 @@ def get_winner_string(winner, show_hands=True):
     #Shows the ending point totals
     point_array = get_point_array()
     for point_index in range(len(point_array)):
-        if(point_array[point_index] < (point_goal - skunk_length - 1)):
+        if(point_array[point_index] < (point_goal - skunk_length)):
             if team_count == 1: #If no teams, display based on name
                 player_scores += f"{players[point_index]} got skunked x{(point_goal - point_array[point_index]) // skunk_length} at {point_array[point_index]} points.\n"
             else: #If teams, display by team
