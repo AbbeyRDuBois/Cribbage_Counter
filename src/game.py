@@ -168,7 +168,7 @@ def get_hand_string(player_index):
     return output_string
 
 #Get picture of hand using "all_assets" in "card_art"
-async def get_hand_pic(plyr_index, card=None):
+async def get_hand_pic(plyr_index, card=None, show_index=True):
     #If a single card is passed in, ignore index and just display the card.
     #Else, get hand if index is valid, or crib if index is negative.
     player_index = copy.copy(plyr_index)
@@ -243,34 +243,39 @@ async def get_hand_pic(plyr_index, card=None):
 
         pg.image.save(pg.transform.rotozoom(card_image, 0, sprite_scalar), card_file_path)
 
-        #Add index (![0-9]) to card
         card_img = Image.open(card_file_path)
-        index_img = Image.new('RGB', (floor(card_width*sprite_scalar/2), floor(card_height*sprite_scalar/2)), color=(0, 0, 0))
 
-        index = hand.index(card)
+        #Add index (![0-9]) to card
+        if show_index == True:
+            index_img = Image.new('RGB', (floor(card_width*sprite_scalar/2), floor(card_height*sprite_scalar/2)), color=(0, 0, 0))
 
-        if index != 0:
-            num_width_multiplier = (index+2) % 3
-            num_height_multiplier = floor((index-1) / 3)
-        else:
-            num_width_multiplier = 1
-            num_height_multiplier = 3
+            index = hand.index(card)
 
-        x_num_coord = num_width * num_width_multiplier + base_num_width
-        y_num_coord = num_height * num_height_multiplier + base_num_height
+            if index != 0:
+                num_width_multiplier = (index+2) % 3
+                num_height_multiplier = floor((index-1) / 3)
+            else:
+                num_width_multiplier = 1
+                num_height_multiplier = 3
 
-        num_image = sheet.subsurface((x_num_coord, y_num_coord, num_width, num_height))
+            x_num_coord = num_width * num_width_multiplier + base_num_width
+            y_num_coord = num_height * num_height_multiplier + base_num_height
 
-        pg.image.save(pg.transform.rotozoom(num_image, 0, sprite_scalar), index_file_path)
+            num_image = sheet.subsurface((x_num_coord, y_num_coord, num_width, num_height))
 
-        index_img.paste(Image.open(index_file_path), (floor(card_width*sprite_scalar*3/16), floor(card_height*sprite_scalar*3/16)))
-        card_img.paste(index_img, (floor(card_width*sprite_scalar/4), floor(card_height*sprite_scalar/4)))
+            pg.image.save(pg.transform.rotozoom(num_image, 0, sprite_scalar), index_file_path)
+
+            index_img.paste(Image.open(index_file_path), (floor(card_width*sprite_scalar*3/16), floor(card_height*sprite_scalar*3/16)))
+            card_img.paste(index_img, (floor(card_width*sprite_scalar/4), floor(card_height*sprite_scalar/4)))
+
+            #Add index to output string
+            output_string += "!" + str(index) + '\t  '
+
+            #Delete reated image
+            os.remove(index_file_path)
 
         #Add card to line
         hand_image.paste(card_img, (card_index*card_width*sprite_scalar, 0))
-
-        #Add index to output string
-        output_string += "!" + str(index) + '\t  '
 
         #Increment to next index
         card_index += 1
@@ -287,9 +292,8 @@ async def get_hand_pic(plyr_index, card=None):
     #Save hand image
     hand_image.save(hand_file_path)
 
-    #Delete created images
+    #Delete created image
     os.remove(card_file_path)
-    os.remove(index_file_path)
 
     #Return image path
     return hand_file_path

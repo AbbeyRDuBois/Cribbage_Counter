@@ -10,12 +10,16 @@
 #Foreign imports
 import discord
 import os
+import copy
 
 #Local imports
 import message
 import credentials
 import format
 import game
+
+spectators = []
+spectator_messages = []
 
 def run_bot():
     # Get token from credentials.json file
@@ -84,6 +88,60 @@ def run_bot():
         else:
             await interaction.response.send_message(game.get_point_string(), ephemeral=True)
 
+    async def get_spectate_pics():
+        player_text = ""
+        hand_pics = []
+        for player in game.players:
+            player_text += player.name + ", "
+            hand_pic = await game.get_hand_pic(game.players.index(player), show_index=False)
+            hand_pics.append(discord.File(hand_pic))
+
+        return [player_text, hand_pics]
+
+    #Sends every player's hand if player not in game
+    @tree.command(name="spectate", description='''See every players' hands.''')
+    async def spectate_command(interaction):
+        [player_text, hand_pics] = await get_spectate_pics()
+
+        if interaction.user in game.players:
+            await interaction.response.send_message("You can't spectate a game you're playing.", ephemeral=True)
+        else:
+            try:
+                #Delete old ephemeral message and create new one (will fault if no previous message)
+                index = spectators.index(interaction.user)
+                await spectator_messages[index].delete_original_response()
+                spectator_messages[spectators.index(interaction.user)] = interaction
+
+            except ValueError as e:
+                #This stops the error from printing to the terminal for firt-time spectators
+                pass
+
+            finally:
+                spectators.append(interaction.user)
+                spectator_messages.append(interaction)
+                await interaction.response.send_message(content=player_text[0:-2], files=hand_pics, ephemeral=True)
+
+                #Free discord.File variables so that card art can be deleted
+                while len(hand_pics) > 0:
+                    file_name = hand_pics[0].filename
+                    hand_pics.pop(0)
+                    os.remove(game.get_path("card_art\\" + file_name))
+
+    #Shows player's thrown cards
+    @tree.command(name="thrown", description='''See the cards you've thrown.''')
+    async def thrown(interaction):
+        player_index = game.players.index(interaction.user)
+        thrown_array = copy.copy(game.backup_hands[player_index])
+        card_string = ""
+
+        for card in game.hands[player_index]:
+            thrown_array.remove(card)
+
+        for card in thrown_array:
+            card_string += card.display()
+        
+        await interaction.response.send_message(content=card_string, ephemeral=True)
+
     #Sends each available command
     @tree.command(name="help", description='''See all available commands.''')
     async def help_command(interaction):
@@ -95,6 +153,19 @@ def run_bot():
             return
         
         await message.process_message(msg)
+
+        #If spectators, update hands
+        if len(spectators) > 0:
+            [player_text, hand_pics] = await get_spectate_pics()
+
+            for spectator_message in spectator_messages:
+                await spectator_message.edit_original_response(content=player_text, attachments=hand_pics)
+
+            #Free discord.File variables so that card art can be deleted
+            while len(hand_pics) > 0:
+                file_name = hand_pics[0].filename
+                hand_pics.pop(0)
+                os.remove(game.get_path("card_art\\" + file_name))
 
     #On startup, sync command tree
     @client.event
