@@ -17,6 +17,7 @@ players = [] #List of Discord users that are playing
 points = [] #Number of points, indexed same as players
 hands = [] #Hands, indexed same as players
 backup_hands = [] #Hands that always have hand_size cards, indexed same as players
+thrown_cards = []
 crib = [] #Crib cards
 end = [] #List of players who wish to prematurely end the game
 num_thrown = [] #Number of cards thrown in crib, indexed same as players
@@ -120,6 +121,7 @@ def reset_round():
     global players
     global hand_size
     global throw_count
+    global thrown_cards
 
     deck.reset_deck()
     pegging_phase = False
@@ -130,6 +132,7 @@ def reset_round():
     hands = []
     backup_hands = []
     crib = []
+    thrown_cards = [[] for _ in range(len(players))]
 
     for ii in range(len(num_thrown)):
         num_thrown[ii] = 0
@@ -307,6 +310,7 @@ def create_game(num_players):
     global crib_count
     global point_goal
     global skunk_length
+    global thrown_cards
 
     if(num_players == 1):
         throw_count = 2
@@ -329,6 +333,7 @@ def create_game(num_players):
         points.append(0)
         end.append(False)
         num_thrown.append(0)
+        thrown_cards.append([])
 
 #Create teams with count number of players if able. Returns True on success and False on error.
 def create_teams(count):
@@ -496,6 +501,7 @@ def throw_away_card(player, card_index):
         crib.append(card)
         hands[player_index].remove(card)
         num_thrown[player_index] += 1
+        thrown_cards[player_index].append(card)
 
         return True
 

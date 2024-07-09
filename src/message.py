@@ -25,7 +25,11 @@ def help_message():
         '**!teams [0-9]+**': Splits players into teams with the specified number of players on each team. Will automatically start the game.
 
       Private Commands:
-        '**/hand**': View your hand
+        '**/hand**', '**/h**': View your hand.
+        '**/thrown**': View the cards you've most recently thrown away.
+
+      Public Commands:
+        '**/spectate**': View hands of all players (only works if not participating in the game).
         '**/calcs**': View how points were obtained in the previous round (hands and crib).
         '**/points**': View current number of points each PLAYER has at current point in time.
         '**/team_points**': View current number of points each team has at current point in time.

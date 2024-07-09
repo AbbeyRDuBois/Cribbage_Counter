@@ -130,17 +130,17 @@ def run_bot():
     #Shows player's thrown cards
     @tree.command(name="thrown", description='''See the cards you've thrown.''')
     async def thrown(interaction):
-        player_index = game.players.index(interaction.user)
-        thrown_array = copy.copy(game.backup_hands[player_index])
-        card_string = ""
+        #If player not in game, will fail
+        try:
+            player_index = game.players.index(interaction.user)
+            card_string = "Thrown cards: "
 
-        for card in game.hands[player_index]:
-            thrown_array.remove(card)
-
-        for card in thrown_array:
-            card_string += card.display()
-        
-        await interaction.response.send_message(content=card_string, ephemeral=True)
+            for card in game.thrown_cards[player_index]:
+                card_string += card.display() + ", "
+            
+            await interaction.response.send_message(content=card_string[0:-2], ephemeral=True)
+        except:
+            await interaction.response.send_message(content="You must be in the game to see the thrown cards.", ephemeral=True)
 
     #Sends each available command
     @tree.command(name="help", description='''See all available commands.''')
