@@ -104,6 +104,12 @@ def run_bot():
         [player_text, hand_pics] = await get_spectate_pics()
 
         if interaction.user in game.players:
+            #Free discord.File variables so that card art can be deleted
+            while len(hand_pics) > 0:
+                file_name = hand_pics[0].filename
+                hand_pics.pop(0)
+                os.remove(game.get_path("card_art\\" + file_name))
+
             await interaction.response.send_message("You can't spectate a game you're playing.", ephemeral=True)
         else:
             try:
