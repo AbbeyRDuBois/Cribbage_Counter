@@ -196,7 +196,7 @@ async def start(author):
             for _ in range(len(game.players)):
                 hand_messages.append(None)
 
-            return add_return(return_list, f'''{author.name} has started the game.\nThrow {game.throw_count} cards into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*''')
+            return add_return(return_list, f'''{author.name} has started the game.\nThrow {game.throw_count} card(s) into **{game.players[game.crib_index % len(game.players)]}**'s crib.\n*Use "/hand" to see your hand.*''')
         else:
             return add_return(return_list, f"You can't start a game you aren't queued for, {author.name}.")
         

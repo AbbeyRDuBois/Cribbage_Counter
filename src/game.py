@@ -35,6 +35,17 @@ pegging_phase = False #True if players are in the pegging phase
 calc_string = "" #Saves most recent hand calculations
 team_count = 1 #Variable to hold number of players per team (combine points)
 
+#The size of the sprites
+base_card_width = 32 #Excess room on sprite sheet
+base_card_height = 32 #Excess room on sprite sheet
+card_width = 32
+card_height = 48
+num_width = 16
+num_height = 16
+base_num_width = 9 * card_width + base_card_width
+base_num_height = 4 * card_height + base_card_height + 8
+sprite_scalar = 3
+
 #Creates the GUI
 #TODO: Maybe have the GUI do something?
 def initUI(window, num_cards):
@@ -172,6 +183,20 @@ def get_hand_string(player_index):
 
 #Get picture of hand using "all_assets" in "card_art"
 async def get_hand_pic(plyr_index, card=None, show_index=True):
+    global players
+    global crib
+    global hands
+
+    global base_card_width #Excess room on sprite sheet
+    global base_card_height #Excess room on sprite sheet
+    global card_width
+    global card_height
+    global num_width
+    global num_height
+    global base_num_width
+    global base_num_height
+    global sprite_scalar
+
     #If a single card is passed in, ignore index and just display the card.
     #Else, get hand if index is valid, or crib if index is negative.
     player_index = copy.copy(plyr_index)
@@ -180,16 +205,14 @@ async def get_hand_pic(plyr_index, card=None, show_index=True):
         hand = [copy.copy(card)]
     else:
         if player_index == -1:
-            global crib
             hand = crib
         else:
-            global hands
             try:
                 hand = hands[player_index]
             except:
                 print("Invalid player index in get_hand_pic.")
                 return ""
-        global players
+        
 
     asset_file_path = get_path('card_art\\all_assets.png')
     card_file_path = get_path('card_art\\card' + str(player_index) + '.png')
@@ -197,22 +220,11 @@ async def get_hand_pic(plyr_index, card=None, show_index=True):
 
     output_string = ""
 
-    #The size of the sprites
-    base_card_width = 32 #Excess room on sprite sheet
-    base_card_height = 32 #Excess room on sprite sheet
-    card_width = 32
-    card_height = 48
-    num_width = 16
-    num_height = 16
-    base_num_width = 9 * card_width + base_card_width
-    base_num_height = 4 * card_height + base_card_height + 8
-    sprite_scalar = 3
-
     #Stores index number
     card_index = 0
 
     #Create empty image with place for images
-    hand_image = Image.new('RGB', (card_width*len(hand*sprite_scalar), card_height*sprite_scalar), color=(0, 80, 80))
+    hand_image = Image.new('RGB', (card_width*len(hand)*sprite_scalar, card_height*sprite_scalar), color=(0, 80, 80))
 
     #For each card in the hand, retrieve it from the sprite sheet and add it to hand image
     for card in [card for card in sorted(hand, key=lambda x: x.to_int_runs())]:
@@ -274,7 +286,7 @@ async def get_hand_pic(plyr_index, card=None, show_index=True):
             #Add index to output string
             output_string += "!" + str(index) + '\t  '
 
-            #Delete reated image
+            #Delete created image
             os.remove(index_file_path)
 
         #Add card to line
@@ -300,6 +312,56 @@ async def get_hand_pic(plyr_index, card=None, show_index=True):
 
     #Return image path
     return hand_file_path
+
+#Get single picture with all hands in it
+async def get_all_hand_pics():
+    global players
+    global hands
+
+    global base_card_width #Excess room on sprite sheet
+    global base_card_height #Excess room on sprite sheet
+    global card_width
+    global card_height
+    global num_width
+    global num_height
+    global base_num_width
+    global base_num_height
+    global sprite_scalar
+
+    all_hands_file_path = get_path('card_art\\all_hands.png')
+
+    #Stores index number
+    hand_index = 0
+    max_hand_len = 4
+
+    for hand in hands:
+        if len(hand) > max_hand_len:
+            max_hand_len = len(hand)
+
+    #Create empty image with place for images
+    all_hands_img = Image.new('RGB', (card_width*max_hand_len*sprite_scalar, card_height*sprite_scalar*len(hands)), color=(0, 80, 80))
+
+    #Create list of hand pics to delete
+    hand_paths = []
+
+    #For each card in the hand, retrieve it from the sprite sheet and add it to hand image
+    for hand_index in range(len(hands)):
+        #Extra variable because load doesn't like indexing into an array for some reason
+        hand_paths.append(await get_hand_pic(hand_index))
+        hand_img = Image.open(hand_paths[-1])
+
+        all_hands_img.paste(hand_img, (0, card_height*sprite_scalar*hand_index))
+
+    #Save massive hand pic
+    all_hands_img.save(all_hands_file_path)
+
+    #Delete created image
+    for path in hand_paths:
+        os.remove(path)
+
+    #Return image path
+    return all_hands_file_path
+
 
 #Sets up game to work with num_players amount of people
 def create_game(num_players):
