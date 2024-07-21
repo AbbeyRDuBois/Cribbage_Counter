@@ -62,7 +62,7 @@ async def process_message(msg):
                     if not os.path.exists(os.path.dirname(item[0])):
                         print(f"Invalid path: {item[0]}")
                         return
-                    await msg.channel.send(content=f"Flipped card: {game.deck.get_flipped()}", file=discord.File(item[0]))
+                    await msg.channel.send(content=f"Flipped card: {game.deck.get_flipped().display()}", file=discord.File(item[0]))
                     os.remove(item[0])
 
     except Exception as error:
