@@ -339,6 +339,8 @@ async def get_all_hand_pics():
             max_hand_len = len(hand)
 
     #Create empty image with place for images
+    if max_hand_len == 0:
+        max_hand_len == 1
     all_hands_img = Image.new('RGB', (card_width*max_hand_len*sprite_scalar, card_height*sprite_scalar*len(hands)), color=(0, 80, 80))
 
     #Create list of hand pics to delete
