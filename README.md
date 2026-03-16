@@ -1,4 +1,6 @@
 # Cribbage Hand Calculator
+
+This project is outdated. Check out the [new cribbage bot](https://github.com/321pie/Card_Bot) or the [web app](https://github.com/AbbeyRDuBois/DeckedOut).<br><br>
 Counts the points in your cribbage hand regardless of how many cards are in the hand.
 Run "Cribbage_Calculator.exe" for the program.
 
